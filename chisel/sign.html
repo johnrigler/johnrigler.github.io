@@ -1,0 +1,224 @@
+<html>
+<head>
+  <!-- script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script -->
+  <script src="elliptic.6_5_4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+  <script src="chisel.js?754"></script>
+  <script src="b58checkDecode.js"></script>
+  <script src="dgb.js?1234"></script>
+  <script src="base58Color.js"></script>
+  <script src="ux.js"></script>
+</head>
+
+<body>
+  <div id="main"></div>
+  <div id="select"></div>
+</body>
+
+
+
+<script>
+
+tablet = ["DDDDDDDDDDDDDDDDDDDDDDDDDDDDxCzcRa","DooooooooooooooooooooooooooDugD8Hv","DoDDDDDDDDDDDDDDDDDDDDDDDDoDsAn249","DoDDDDDDDDDDDDDDDDDDDDDDDDoDkTbbuS","DooooooooooooooooooooooooooDrAzKpL","DDDDDDDDDDDDDDDDDDDDDDDDDDDDmLzWX2"]
+
+
+async function signDGB(rawTxHex, privKeys) {
+  /* ─ helpers ────────────────────────────────────────────── */
+  const ec = new elliptic.ec('secp256k1');
+
+  const hex = {
+    toBytes: h => Uint8Array.from(h.match(/.{2}/g).map(b => parseInt(b, 16))),
+    fromBytes: b => Array.from(b).map(x => btoa(String.fromCharCode(...b))[0]) // dummy; replaced later
+  };
+  hex.fromBytes = b => [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+
+  const sha256 = b => CryptoJS.SHA256(CryptoJS.lib.WordArray.create(b)).words
+      .reduce((a,w)=>a.concat([(w>>>24)&255,(w>>>16)&255,(w>>>8)&255,w&255]),[]);
+  const dblSha256 = b => sha256(Uint8Array.from(sha256(b)));
+
+  function wifToPriv(wif) {
+    const full = hex.toBytes(ethers.decodeBase58(wif));
+    const chk  = sha256(Uint8Array.from(sha256(full.slice(0,-4)))).slice(0,4);
+    if (chk.some((v,i)=>v!==full[full.length-4+i])) throw 'bad WIF checksum';
+    return hex.fromBytes(full.slice(1,33));      // drop 0x80 & checksum
+  }
+
+  /* varint helpers */
+  const readVarInt = (v,o) => {
+    const n=v[o];
+    if(n<0xfd) return [n,1];
+    if(n===0xfd) return [v[o+1]|(v[o+2]<<8),3];
+    return [v[o+1]|(v[o+2]<<8)|(v[o+3]<<16)|(v[o+4]<<24),5];
+  };
+  const writeVarInt = n =>
+    n<0xfd ? Uint8Array.of(n) :
+    n<=0xffff ? Uint8Array.of(0xfd,n&255,n>>8) :
+    Uint8Array.of(0xfe,n&255,(n>>8)&255,(n>>16)&255,(n>>24)&255);
+
+  /* concat helper */
+  const concat = arrs=>{
+    const len=arrs.reduce((n,a)=>n+a.length,0);
+    const out=new Uint8Array(len);
+    let p=0; for(const a of arrs){out.set(a,p);p+=a.length;} return out;
+  };
+
+  const assemble = (ver,ins,outsBytes,lock,voutCnt)=>{
+    const parts=[ver,writeVarInt(ins.length)];
+    for(const inp of ins){
+      parts.push(inp.prev,writeVarInt(inp.scriptSig.length),
+                 inp.scriptSig,inp.seq);
+    }
+    parts.push(writeVarInt(voutCnt),outsBytes,lock);
+    return concat(parts);
+  };
+
+  /* ─ parse unsigned tx ─ */
+  let data = hex.toBytes(rawTxHex);
+  let p=0;
+  const version = data.slice(p,p+=4);
+
+  const [vinCnt,vinLen]=readVarInt(data,p); p+=vinLen;
+  const inputs=[];
+  for(let i=0;i<vinCnt;i++){
+    const prev = data.slice(p,p+=36);
+    const [slen,shlen]=readVarInt(data,p); p+=shlen+slen;   // skip script
+    const seq  = data.slice(p,p+=4);
+    inputs.push({prev,seq,scriptSig:new Uint8Array(0)});
+  }
+
+  const [voutCnt,voutLen]=readVarInt(data,p); p+=voutLen;
+  const outs = data.slice(p,data.length-4);
+  const lock = data.slice(data.length-4);
+
+//  if(privKeys.length!==vinCnt) throw 'privKeys.length != vin count';
+
+  /* ─ sign each input ─ */
+  for(let i=0;i<vinCnt;i++){
+    const priv = privKeys[i].length>64? wifToPriv(privKeys[i]) : privKeys[i];
+    const key  = ec.keyFromPrivate(priv);
+    const pub  = key.getPublic(true,'hex');
+
+    /* pubKeyHash = RIPEMD160(SHA256(pubkey)) */
+    const pubHash = hex.fromBytes(
+      CryptoJS.RIPEMD160(
+        CryptoJS.SHA256(CryptoJS.enc.Hex.parse(pub))
+      ).words.flatMap(w=>[(w>>>24)&255,(w>>>16)&255,(w>>>8)&255,w&255])
+    );
+
+    const scriptCode = hex.toBytes(`76a914${pubHash}88ac`);
+    const scrLenEnc  = writeVarInt(scriptCode.length);
+
+    /* sighash pre‑image */
+    const preParts=[version,writeVarInt(vinCnt)];
+    for(let j=0;j<vinCnt;j++){
+      preParts.push(inputs[j].prev);
+      if(j===i){ preParts.push(scrLenEnc,scriptCode); }
+      else      { preParts.push(Uint8Array.of(0)); }
+      preParts.push(inputs[j].seq);
+    }
+    preParts.push(writeVarInt(voutCnt),outs,lock,Uint8Array.of(1,0,0,0));
+    const z = dblSha256(concat(preParts));
+
+    /* signature */
+    const sigDerHex = key.sign(z,{canonical:true}).toDER('hex');
+    const sigBytes  = hex.toBytes(sigDerHex);
+    const sigWH     = Uint8Array.of(...sigBytes,0x01);
+
+    /* scriptSig = <sig> <pubkey> */
+    inputs[i].scriptSig = Uint8Array.of(
+      sigWH.length, ...sigWH,
+      pub.length/2, ...hex.toBytes(pub)
+    );
+  }
+
+  /* final tx */
+  const finalTx = assemble(version,inputs,outs,lock,voutCnt);
+  return hex.fromBytes(finalTx);
+}
+
+/* example call */
+const unsigned =
+  '0200000001630f9c5472a8156594f5a0e45676be75b69cd817bc74007e7b807ee1589234a3' +
+  '0000000000ffffffff0370170000000000001976a9144ab91aa91c29b570f982eb485ee90' +
+  '9eb0e84e0b088ac70170000000000001976a91455c0355b8a6c08885bf229c31c9a0cd538' +
+  'c2e9b588ac0000000000000000036a010000000000';
+
+const unsigned3 = '0200000001316ee6f51a2ec1f2427bce40bbc56ae948d6df4c99402f3b22009bd0fe1e714f0000000000ffffffff086c040000000000001976a91458883d421d7714bedde4d28730d00d9bf6f79c7988ac6c040000000000001976a914d40789d0611c87c830d34f92356775433742f78488ac6c040000000000001976a914cd7c84148c1543977a6e18731f41898b5de0d5e288ac6c040000000000001976a914cd7c84148c1543977a6e18731f41898b5de0d5e188ac6c040000000000001976a914d40789d0611c87c830d34f92356775433742f78388ac6c040000000000001976a91458883d421d7714bedde4d28730d00d9bf6f79c7888ac0000000000000000146a1268747470733a2f2f676f6f676c652e636f6d6880eb0b000000001976a914c788ee0d66963eaa9110d3f1d32571ff93dd7de588ac00000000';
+
+const unsigned2 = '0200000001316ee6f51a2ec1f2427bce40bbc56ae948d6df4c99402f3b22009bd0fe1e714f0000000000ffffffff086c040000000000001976a91458883d421d7714bedde4d28730d00d9bf6f79c7988ac6c040000000000001976a914d40789d0611c87c830d34f92356775433742f78488ac6c040000000000001976a914cd7c84148c1543977a6e18731f41898b5de0d5e288ac6c040000000000001976a914cd7c84148c1543977a6e18731f41898b5de0d5e188ac6c040000000000001976a914d40789d0611c87c830d34f92356775433742f78388ac6c040000000000001976a91458883d421d7714bedde4d28730d00d9bf6f79c7888ac0000000000000000146a1268747470733a2f2f676f6f676c652e636f6da0d7ea0b000000001976a914c788ee0d66963eaa9110d3f1d32571ff93dd7de588ac00000000';
+
+const unsigned4 = '0200000001316ee6f51a2ec1f2427bce40bbc56ae948d6df4c99402f3b22009bd0fe1e714f0000000000ffffffff086c040000000000001976a91458883d421d7714bedde4d28730d00d9bf6f79c7988ac6c040000000000001976a914d40789d0611c87c830d34f92356775433742f78488ac6c040000000000001976a914cd7c84148c1543977a6e18731f41898b5de0d5e288ac6c040000000000001976a914cd7c84148c1543977a6e18731f41898b5de0d5e188ac6c040000000000001976a914d40789d0611c87c830d34f92356775433742f78388ac6c040000000000001976a91458883d421d7714bedde4d28730d00d9bf6f79c7888accc560000000000002076a91465ab6ff0649c00ca31f24270df36421bc86326f5fbfaee6cda17dc88ac0000000000000000456a4368747470733a2f2f7365637265746265616368736f6c7574696f6e732e636f6d2f65617379426173652f3f6576616c46696c653d636f6c6f7243686f72642e68746d6c00000000';
+
+tablet = ["DDDDDDDDDDDDDDDDDDDDDDDDDDDDxCzcRa","DooooooooooooooooooooooooooDugD8Hv","DoDDDDDDDDDDDDDDDDDDDDDDDDoDsAn249","DoDDDDDDDDDDDDDDDDDDDDDDDDoDkTbbuS","DooooooooooooooooooooooooooDrAzKpL","DDDDDDDDDDDDDDDDDDDDDDDDDDDDmLzWX2"]
+
+const keys = [ ]; // emptied for safe sharing
+
+signDGB(unsigned4, keys).then(console.log).catch(console.error);
+
+const colorMap = Base58Color.getColorMap( 120  );
+
+Base58Color.renderChordToHtml(main, tablet, colorMap);
+
+
+ux.renderObjectTable('select', dgb.utxo, ['address','amount'], selected => {
+  console.log('Streamed out:', selected);
+})
+
+/*
+
+fetch("http://localhost:7788/load", {
+        method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: "newHopeChisel.json" })
+  }).then( x => x.json()).then( x => newHope = x )
+
+
+fileLoad("newHope.json").then( x => newHope = x) <-- doesn't work
+newHope.data.chisel
+
+const outputs = [];
+
+  // Tablet burns first
+  newHope.data.chisel.forEach(addr => {
+    outputs.push({ [addr] : 0.0000546 });
+  });
+
+
+start=0.65975352
+burn=0.0000546
+change=0.62457132
+start-(burn*6)-change
+0.03485459999999996
+
+start=0.62457132
+burn=0.0000546
+fee=0.4428
+start-(burn*127)-fee
+
+change=0.17483712
+
+fundedChange=0.21001932
+
+fee=0.4428
+
+vin = { "txid":"18d73c25e80aac45665ba58b22c1c3ebf8b9181ddc8b1e31c69a9ab01d1dcddb","vout":3 }
+vout = outputs.slice(120)
+
+dgb.query("listunspent").then( x => dgb.unspent = x )
+
+
+dgb.raw = dgb.buildRaw( [ [ dgb.unspent.result[27] ], outputs ] )
+dgb.query("fundrawtransaction",[ dgb.raw ]).then( x => dgb.funded = x )
+dgb.query("signrawtransactionwithwallet", [ dgb.funded.result.hex ]).then( x => signed = x )
+dgb.query("sendrawtransaction", [ signed.result.hex ] ).then( x => console.log(x) )
+
+dgb.query("decoderawtransaction",[ dgb.raw ]).then( x => console.log(x) )
+
+
+
+*/
+
+
+</script>
+
