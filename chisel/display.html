@@ -1,0 +1,162 @@
+<html>
+<head>
+  <script src="dgb.js"></script>
+  <script src="chisel.js"></script>
+</head>
+<body>
+  <div id="container"></div>
+
+  <script>
+    tablet = []
+    colorMap = []
+
+    // Create layout dynamically
+    const container = document.getElementById("container");
+    container.style.display = "flex";
+    container.style.alignItems = "center";
+    container.style.gap = "20px";
+    container.style.flexWrap = "wrap";
+
+    const canvas = document.createElement("canvas");
+    canvas.id = "canvas";
+    canvas.width = 832;
+    canvas.height = 676;
+    canvas.style.border = "1px solid black";
+    container.appendChild(canvas);
+
+    const dDiv = document.createElement("div");
+    dDiv.id = "dBucket";
+    dDiv.style.whiteSpace = "pre";
+    dDiv.style.fontFamily = "monospace";
+    container.appendChild(dDiv);
+
+    async function loadAll(txid, b57file = "b57.json") {
+      await Promise.all([
+        dgb.grt_1(txid).then(result => {
+          result.vout.forEach(x => {
+            tablet.push(x.scriptPubKey.address);
+          });
+        }),
+        fetch(b57file).then(res => res.json()).then(data => {
+          data.forEach(entry => {
+            const rgbArray = entry.rgb.split(',').map(v => parseInt(v.trim(), 10));
+            colorMap[entry.b57] = rgbArray;
+          });
+        })
+      ]);
+
+      return tablet;
+    }
+
+function drawCharTabletImage(output, scale = 8) {
+  if (!Array.isArray(output) || output.length === 0) return;
+
+  const rows = output.length;
+  const cols = output[0].length - 8; // exclude first 2 and last 6 chars
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = cols * scale;
+  canvas.height = rows * scale;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let y = 0; y < rows; y++) {
+    const line = output[y];
+    for (let x = 0; x < cols; x++) {
+      const ch = line[x + 2]; // skip first 2 chars
+      const rgb = colorMap[ch] || [0, 0, 0];
+      ctx.fillStyle = `rgb(${rgb.join(',')})`;
+      ctx.fillRect(x * scale, y * scale, scale, scale);
+    }
+  }
+}
+
+    // Load data and render
+    loadAll("d8eef1586bb88d192d3284726407c307f0c54b1c023b7ef343e401eb89ea098d").then(tablet => {
+      const buckets = {};
+      tablet.forEach(line => {
+        const key = line.charAt(0);
+        if (!buckets[key]) buckets[key] = [];
+        buckets[key].push(line);
+      });
+
+      if (buckets["S"]) {
+        drawCharTabletImage(buckets["S"]);
+      }
+
+/*
+*/
+
+if (buckets["D"]) {
+  const dDiv = document.getElementById("dBucket");
+  dDiv.innerHTML = ""; // clear previous
+
+  const raw = buckets["D"];
+
+  // -- First Pass: Clickable Links
+  raw.forEach(address => {
+    const a = document.createElement("a");
+    a.href = `https://chainz.cryptoid.info/dgb/address.dws?${address}.htm`;
+    a.textContent = address;
+    a.target = "_blank";
+    a.style.display = "block";
+    a.style.textDecoration = "none";
+    a.style.color = "#000";
+    a.style.padding = "2px 4px";
+    a.addEventListener("mouseenter", () => a.style.backgroundColor = "#e0e0e0");
+    a.addEventListener("mouseleave", () => a.style.backgroundColor = "");
+    dDiv.appendChild(a);
+  });
+
+  // -- Spacer
+  dDiv.appendChild(document.createElement("br"));
+
+  // -- Second Pass: Decoded + Colored
+  // Group by second letter
+  const groups = {};
+  raw.forEach(addr => {
+    const key = addr.charAt(1);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(addr);
+  });
+
+  // Assign colors in order
+  const colorOrder = ["blue", "brown", "green"];
+  const groupKeys = Object.keys(groups).slice(0, 3);
+
+  groupKeys.forEach((key, idx) => {
+    const color = colorOrder[idx];
+    groups[key].forEach(addr => {
+      const span = document.createElement("div");
+      let label = addr.slice(2, -6); // remove first 2 and last 6
+      label = label.replace(/[xz]/g, " "); // replace x/z with space
+      label = label.replace(/v/g,".");
+      label = label.replace(/g/g,"'");
+      label = label.replace(/k/g,"?");
+      label = label.replace(/i/g,"I");
+      label = label.replace(/o/g,"O");
+      label = label.replace(/c/g,"0");
+      span.textContent = label;
+      span.style.color = color;
+      span.style.fontFamily = "monospace";
+      dDiv.appendChild(span);
+    });
+
+    // Small gap between groups
+    dDiv.appendChild(document.createElement("br"));
+  });
+}
+
+
+
+      Object.entries(buckets).forEach(([key, arr]) => {
+        if (key !== "S" && key !== "D") {
+          console.log(`Lines starting with ${key}:`, arr);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
