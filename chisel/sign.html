@@ -20,7 +20,19 @@
 
 <script>
 
-tablet = ["DDDDDDDDDDDDDDDDDDDDDDDDDDDDxCzcRa","DooooooooooooooooooooooooooDugD8Hv","DoDDDDDDDDDDDDDDDDDDDDDDDDoDsAn249","DoDDDDDDDDDDDDDDDDDDDDDDDDoDkTbbuS","DooooooooooooooooooooooooooDrAzKpL","DDDDDDDDDDDDDDDDDDDDDDDDDDDDmLzWX2"]
+tablet = []
+
+[
+    "DDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "DDoooooooooooooooooooooooooD",
+    "DDoDDDDDDDDDDDDDDDDDDDDDDDoD",
+    "DDoooooooooooDoooooooooooooD",
+    "DDDDDDDDDDDDDoDDDDDDDDDDDDDD"
+   ].forEach( x => unspendable(x)
+    .then( x => { 
+                tablet.push({[x]:0.0000546})
+                })
+    )
 
 
 async function signDGB(rawTxHex, privKeys) {
@@ -150,8 +162,6 @@ const unsigned2 = '0200000001316ee6f51a2ec1f2427bce40bbc56ae948d6df4c99402f3b220
 
 const unsigned4 = '0200000001316ee6f51a2ec1f2427bce40bbc56ae948d6df4c99402f3b22009bd0fe1e714f0000000000ffffffff086c040000000000001976a91458883d421d7714bedde4d28730d00d9bf6f79c7988ac6c040000000000001976a914d40789d0611c87c830d34f92356775433742f78488ac6c040000000000001976a914cd7c84148c1543977a6e18731f41898b5de0d5e288ac6c040000000000001976a914cd7c84148c1543977a6e18731f41898b5de0d5e188ac6c040000000000001976a914d40789d0611c87c830d34f92356775433742f78388ac6c040000000000001976a91458883d421d7714bedde4d28730d00d9bf6f79c7888accc560000000000002076a91465ab6ff0649c00ca31f24270df36421bc86326f5fbfaee6cda17dc88ac0000000000000000456a4368747470733a2f2f7365637265746265616368736f6c7574696f6e732e636f6d2f65617379426173652f3f6576616c46696c653d636f6c6f7243686f72642e68746d6c00000000';
 
-tablet = ["DDDDDDDDDDDDDDDDDDDDDDDDDDDDxCzcRa","DooooooooooooooooooooooooooDugD8Hv","DoDDDDDDDDDDDDDDDDDDDDDDDDoDsAn249","DoDDDDDDDDDDDDDDDDDDDDDDDDoDkTbbuS","DooooooooooooooooooooooooooDrAzKpL","DDDDDDDDDDDDDDDDDDDDDDDDDDDDmLzWX2"]
-
 const keys = [ ]; // emptied for safe sharing
 
 signDGB(unsigned4, keys).then(console.log).catch(console.error);
@@ -180,7 +190,7 @@ newHope.data.chisel
 const outputs = [];
 
   // Tablet burns first
-  newHope.data.chisel.forEach(addr => {
+  tablet.chisel.forEach(addr => {
     outputs.push({ [addr] : 0.0000546 });
   });
 
