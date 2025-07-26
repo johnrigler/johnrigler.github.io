@@ -1,0 +1,153 @@
+<html>
+
+<input type="file" id="imgInput"><br>
+<label>Cols: <input id="cols" type="number" value="24"></label>
+<label>Rows: <input id="rows" type="number" value="24"></label>
+<label>X Offset: <input id="xOffset" type="number" value="0"></label>
+<label>Y Offset: <input id="yOffset" type="number" value="0"></label>
+<label>Scale: <input id="scale" type="number" value="1"></label>
+
+<label>Trim Top: <input id="trimTop" type="number" value="0"></label>
+<label>Trim Bottom: <input id="trimBottom" type="number" value="0"></label>
+<label>Trim Left: <input id="trimLeft" type="number" value="0"></label>
+<label>Trim Right: <input id="trimRight" type="number" value="0"></label>
+
+
+<button onclick="reloadImage()">Reload</button>
+<br><canvas id="canvas"></canvas>
+<pre id="output"></pre>
+
+
+
+</html>
+<script>
+
+const colorMap  = {
+        // Named colors (52) + emergency color 'z'
+        'K': [112, 128, 144],
+        'U': [47, 79, 79],
+        'n': [176, 196, 222], 
+//        't': [0, 0, 0],        // black
+        'u': [51, 51, 51],     // dark gray
+        'v': [102, 102, 102],  // medium-dark
+        'w': [153, 153, 153],  // medium-light
+        'x': [204, 204, 204],  // light gray
+      };
+
+let imgEl = null;
+
+function rgbDist(c1, c2) {
+  return Math.sqrt(
+    (c1[0] - c2[0]) ** 2 +
+    (c1[1] - c2[1]) ** 2 +
+    (c1[2] - c2[2]) ** 2
+  );
+}
+
+function getClosestChar(rgb) {
+  let bestChar = 'z';
+  let minDist = Infinity;
+  for (const [char, targetRGB] of Object.entries(colorMap)) {
+    const dist = rgbDist(rgb, targetRGB);
+    if (dist < minDist) {
+      minDist = dist;
+      bestChar = char;
+    }
+  }
+  return bestChar;
+}
+
+document.getElementById('imgInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  imgEl = new Image();
+  imgEl.onload = reloadImage;
+  imgEl.src = URL.createObjectURL(file);
+});
+
+function reloadImage() {
+  if (!imgEl) return;
+  const targetCols = parseInt(document.getElementById('cols').value);
+  const targetRows = parseInt(document.getElementById('rows').value);
+  const scale = parseFloat(document.getElementById('scale').value);
+  const xOffset = parseInt(document.getElementById('xOffset')?.value || 0);
+  const yOffset = parseInt(document.getElementById('yOffset')?.value || 0);
+
+  const trimTop = parseInt(document.getElementById('trimTop')?.value || 0);
+  const trimBottom = parseInt(document.getElementById('trimBottom')?.value || 0);
+  const trimLeft = parseInt(document.getElementById('trimLeft')?.value || 0);
+  const trimRight = parseInt(document.getElementById('trimRight')?.value || 0);
+
+  const trimmedCols = targetCols - trimLeft - trimRight;
+  const trimmedRows = targetRows - trimTop - trimBottom;
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Set canvas to grid dimensions
+  canvas.width = trimmedCols * scale;
+  canvas.height = trimmedRows * scale;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = false;
+
+  // Draw original image scaled to fit the target grid for averaging
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = targetCols;
+  tempCanvas.height = targetRows;
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCtx.drawImage(imgEl, xOffset, yOffset, imgEl.width, imgEl.height, 0, 0, targetCols, targetRows);
+  const imageData = tempCtx.getImageData(0, 0, targetCols, targetRows).data;
+
+    // Build output string and draw pixelated canvas
+
+  // Display character count at the top
+  const countDisplay = document.getElementById('lineCharCount') || (() => {
+    const p = document.createElement('p');
+    p.id = 'lineCharCount';
+    p.style.fontFamily = 'monospace';
+    const container = document.getElementById('controls') || document.body;
+    container.insertBefore(p, container.firstChild);
+    return p;
+  })();
+  countDisplay.textContent = `Characters per line: ${trimmedCols}`;
+  let output = '';
+  const lines = [];
+  for (let y = trimTop; y < targetRows - trimBottom; y++) {
+    let line = '';
+    for (let x = trimLeft; x < targetCols - trimRight; x++) {
+      const idx = (y * targetCols + x) * 4;
+      const rgb = [
+        imageData[idx],
+        imageData[idx + 1],
+        imageData[idx + 2]
+      ];
+      const ch = getClosestChar(rgb);
+      line += ch;
+
+      // Draw pixelated block
+      ctx.fillStyle = `rgb(${colorMap[ch].join(',')})`;
+      ctx.fillRect((x - trimLeft) * scale, (y - trimTop) * scale, scale, scale);
+    }
+    lines.push(line);
+    output += line + '\n';
+  }
+
+  // Create a colorized text block with each character styled
+  const outEl = document.getElementById('output');
+  outEl.innerHTML = '';
+  lines.forEach(line => {
+    const div = document.createElement('div');
+    for (const ch of line) {
+      const span = document.createElement('span');
+      span.textContent = ch;
+      const rgb = colorMap[ch] || [0, 0, 0];
+      span.style.color = `rgb(${rgb.join(',')})`;
+      span.style.fontFamily = 'monospace';
+      span.style.whiteSpace = 'pre';
+      div.appendChild(span);
+    }
+    outEl.appendChild(div);
+  });
+//  });
+}
+</script>
