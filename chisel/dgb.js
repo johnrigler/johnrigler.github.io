@@ -1,6 +1,493 @@
 
 
 dgb = [];
+dgb.util = [];
+
+dgb.util.hexToBytes = function hexToBytes(hex) {
+  return Uint8Array.from(hex.match(/.{2}/g).map(b => parseInt(b, 16)));
+}
+
+dgb.util.bytesToHex = function bytesToHex(bytes) {
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+dgb.util.sha256 = function sha256(hex) {
+  const bytes = dgb.util.hexToBytes(hex);
+  const wordArray = CryptoJS.lib.WordArray.create(bytes);
+  return CryptoJS.SHA256(wordArray).toString(CryptoJS.enc.Hex);
+}
+
+dgb.util.sha256b = function sha256(hex) {
+    const raw = CryptoJS.enc.Hex.parse(hex);
+    return CryptoJS.SHA256(raw).toString(CryptoJS.enc.Hex);
+  }
+
+
+dgb.util.dblSha = function dblSha(hex) {
+  return dgb.util.sha256(dgb.util.sha256(hex));
+}
+
+
+dgb.util.ripemd160 = function(hex) {
+  const bytes = dgb.util.hexToBytes(hex); 
+  const wordArray = CryptoJS.lib.WordArray.create(bytes);
+  return CryptoJS.RIPEMD160(wordArray).toString(CryptoJS.enc.Hex);
+}
+
+dgb.b58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+
+dgb.util.b58ToBytes = function base58ToBytes(str) {
+    let bytes = [0];
+    for (let i = 0; i < str.length; i++) {
+      const val = dgb.b58.indexOf(str[i]);
+      if (val === -1) throw 'Invalid Base58 character';
+
+      for (let j = 0; j < bytes.length; j++) bytes[j] *= 58;
+      bytes[0] += val;
+
+      for (let j = 0; j < bytes.length; j++) {
+        if (bytes[j] > 0xff) {
+          if (bytes[j + 1] === undefined) bytes[j + 1] = 0;
+          bytes[j + 1] += (bytes[j] / 256) | 0;
+          bytes[j] %= 256;
+        }
+      }
+    }
+
+    // Handle leading 1s (which are zeros in base58)
+    for (let i = 0; i < str.length && str[i] === '1'; i++) {
+      bytes.push(0);
+    }
+
+    return new Uint8Array(bytes.reverse());
+}
+
+dgb.util.signRawTransaction = function(rawTxHex, privKeyHex) {
+  const ec = new elliptic.ec('secp256k1');
+
+  // Extract txid and vout from rawTx
+  const version = rawTxHex.slice(0, 8);
+  const vinCount = rawTxHex.slice(8, 10);
+  const vinStart = 10;
+  const txidLE = rawTxHex.slice(vinStart, vinStart + 64);
+  const vout = rawTxHex.slice(vinStart + 64, vinStart + 72);
+  const scriptLenOffset = vinStart + 72;
+  const scriptLen = rawTxHex.slice(scriptLenOffset, scriptLenOffset + 2);
+
+  if (scriptLen !== '00') throw new Error("Expected empty scriptSig in unsigned raw TX");
+
+  const sequence = rawTxHex.slice(scriptLenOffset + 2, scriptLenOffset + 10);
+
+  // Rebuild a simplified tx for signing (replace scriptSig with pubkeyScript for sighash)
+  const pubkey = ec.keyFromPrivate(privKeyHex).getPublic(true, 'hex');
+  const pubkeyHash = dgb.util.ripemd160(dgb.util.sha256(pubkey));
+  const pkScript = '76a914' + pubkeyHash + '88ac'; // p2pkh
+  const pkScriptLen = dgb.util.byteHex(pkScript.length / 2);
+
+  const toHash =
+    version +
+    vinCount +
+    txidLE +
+    vout +
+    pkScriptLen + pkScript +
+    sequence +
+    rawTxHex.slice(scriptLenOffset + 10, -8) + // all outputs and no locktime yet
+    rawTxHex.slice(-8) +  // locktime
+    '01000000'; // SIGHASH_ALL (4-byte little endian)
+
+  const hashToSign = dgb.util.sha256(dgb.util.sha256(toHash));
+
+  // Sign it
+  const sig = ec.keyFromPrivate(privKeyHex).sign(hashToSign, { canonical: true });
+  const der = sig.toDER('hex') + '01'; // Append SIGHASH_ALL
+  const derLen = dgb.util.byteHex(der.length / 2);
+
+  const pubLen = dgb.util.byteHex(pubkey.length / 2);
+  const scriptSig = derLen + der + pubLen + pubkey;
+  const fullScriptLen = dgb.util.byteHex(scriptSig.length / 2);
+
+  // Insert scriptSig into rawTx at proper location
+  const beforeScript = rawTxHex.slice(0, scriptLenOffset);
+  const afterScript = rawTxHex.slice(scriptLenOffset + 2); // skip old '00'
+
+  const finalRaw = beforeScript + fullScriptLen + scriptSig + afterScript;
+  return finalRaw.toLowerCase();
+};
+
+
+dgb.util.base58Encode = function base58Encode(hex) {
+  const base58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+  // Convert hex string to byte array
+  const bytes = hex.match(/.{2}/g).map(b => parseInt(b, 16));
+
+  // Convert byte array to a big number array (simulate big number division)
+  let digits = [0];
+  for (let i = 0; i < bytes.length; i++) {
+    let carry = bytes[i];
+    for (let j = 0; j < digits.length; ++j) {
+      carry += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry = (carry / 58) | 0;
+    }
+    while (carry) {
+      digits.push(carry % 58);
+      carry = (carry / 58) | 0;
+    }
+  }
+
+  // Handle leading zeros (each '00' byte == '1' in base58)
+  let pad = 0;
+  while (pad < bytes.length && bytes[pad] === 0) pad++;
+
+  let result = '';
+  for (let i = 0; i < pad; i++) result += '1';
+  for (let i = digits.length - 1; i >= 0; i--) result += base58chars[digits[i]];
+
+  return result;
+}
+
+
+
+dgb.util.pubKeyToAddress = function(pubKeyHex) {
+
+  const pubBytes = Uint8Array.from(pubKeyHex.match(/.{2}/g).map(h => parseInt(h, 16)));
+
+  const sha = CryptoJS.SHA256(CryptoJS.lib.WordArray.create(pubBytes)).toString(CryptoJS.enc.Hex);
+  const ripemd = CryptoJS.RIPEMD160(CryptoJS.enc.Hex.parse(sha)).toString(CryptoJS.enc.Hex);
+
+  const version = '1e'; // Digibyte mainnet pubkeyhash prefix
+  const payload = version + ripemd;
+
+  const hash1 = CryptoJS.SHA256(CryptoJS.enc.Hex.parse(payload)).toString(CryptoJS.enc.Hex);
+  const hash2 = CryptoJS.SHA256(CryptoJS.enc.Hex.parse(hash1)).toString(CryptoJS.enc.Hex);
+  const checksum = hash2.slice(0, 8);
+
+  const addressHex = payload + checksum;
+  console.log(addressHex);
+//  return dgb.util.base58Encode(addressHex);
+}
+
+
+
+
+dgb.util.wifDecode = function wifDecode(wif) {
+
+  function sha256(hex) {
+    const raw = CryptoJS.enc.Hex.parse(hex);
+    return CryptoJS.SHA256(raw).toString(CryptoJS.enc.Hex);
+  }
+
+  const raw = dgb.util.b58ToBytes(wif);
+  const hex = dgb.util.bytesToHex(raw);
+
+  const body = hex.slice(0, -8);
+  const checksum = hex.slice(-8);
+  const hash = dgb.util.sha256b(dgb.util.sha256b(body)).slice(0, 8);
+
+  const prefix = body.slice(0, 2);
+  const suffix = body.slice(-2);
+  const compressed = suffix === '01';
+
+  const privKey = compressed ? body.slice(2, -2) : body.slice(2);
+
+  const ec = new elliptic.ec('secp256k1');
+  const key = ec.keyFromPrivate(privKey);
+  const pub = key.getPublic(compressed, 'hex');
+
+  const pubHash = dgb.util.ripemd160(dgb.util.sha256(pub));
+  const versioned = '1e' + pubHash; // 0x1e = Digibyte Mainnet pubkeyhash
+  const checksum2 = dgb.util.sha256(dgb.util.sha256(versioned)).slice(0, 8);
+  const addressHex = versioned + checksum2;
+  const address = dgb.util.base58Encode(addressHex);
+
+return {
+    valid: checksum === hash,
+    compressed,
+    privKey,
+    pubKey: pub,
+    pubHash,
+    addressPrefix: '1e',
+    address,
+    hex,
+    body,
+    check: checksum
+  };
+}
+
+dgb.util.verifySignature = function verifySignature(msgHex, sigHex, pubHex) {
+  // Create curve context
+  const ec = new elliptic.ec('secp256k1');
+
+  // Remove sighash flag (last byte)
+  const der = sigHex.slice(0, -2);
+
+  // Reconstruct public key
+  const pubKey = ec.keyFromPublic(pubHex, 'hex');
+
+  // Hash message (assumed hex input and hex output)
+  const hash = dgb.util.sha256(msgHex); // output: hex
+
+  // Verify (elliptic can take DER sig as hex directly)
+  return pubKey.verify(hash, der);
+}
+
+dgb.util.signMessage = function signMessage(msgHex, privKeyHex) {
+  
+  // Convert private key to keypair using elliptic
+  const ec = new elliptic.ec('secp256k1');
+  const key = ec.keyFromPrivate(privKeyHex);
+
+  // Hash the message (typically a tx or message hash)
+  const hash = sha256(msgHex); // assumed to return a hex string
+
+  // Sign the hash
+  const sig = key.sign(hash, { canonical: true });
+
+  // DER-encode + add hash type 0x01 (SIGHASH_ALL)
+  const derHex = sig.toDER('hex') + '01';
+
+  return derHex;
+}
+
+dgb.util.magicPrefixHash = function(messageHex) {
+  const prefix = "DigiByte Signed Message:\n";
+  const prefixBytes = Array.from(new TextEncoder().encode(prefix));
+  const msgBytes = dgb.util.hexToBytes(messageHex);
+  const lenBytes = [msgBytes.length];
+
+  const full = prefixBytes.concat(lenBytes, msgBytes);
+  const fullHex = dgb.util.bytesToHex(full);
+
+  return dgb.util.sha256(dgb.util.sha256(fullHex));
+}
+
+dgb.util.signMessageCompact = function(messageHex, privKeyHex, compressed=true) {
+  const ec = new elliptic.ec('secp256k1');
+  const key = ec.keyFromPrivate(privKeyHex);
+  const hash = dgb.util.magicPrefixHash(messageHex);
+  const sig = key.sign(hash, { canonical: true });
+
+  // Recoverable signature
+  const recoveryParam = sig.recoveryParam; // 0-3
+  const headerByte = 27 + recoveryParam + (compressed ? 4 : 0);
+  const r = sig.r.toArray('be', 32);
+  const s = sig.s.toArray('be', 32);
+
+  const sigBytes = [headerByte].concat(r, s);
+  const base64sig = btoa(String.fromCharCode.apply(null, sigBytes));
+  return base64sig;
+}
+
+//dgb.util.bytesToHex = function(n) {
+//  return n.toString(16).padStart(2, '0');
+//}
+
+dgb.util.signVinDetailed = function(rawTxHex, privHex, pubHex) {
+  const ec = new elliptic.ec('secp256k1');
+  const key = ec.keyFromPrivate(privHex);
+
+  // Step 1: append sighash type (01) to tx before hashing
+  const sighashType = '01000000'; // SIGHASH_ALL (little endian)
+  const txToSign = rawTxHex + sighashType;
+
+  // Step 2: hash transaction
+  const hash = dgb.util.sha256(dgb.util.sha256(txToSign));
+
+  // Step 3: sign the hash
+  const sig = key.sign(hash); // not forcing canonical, match digibyted more closely
+
+  const derHex = sig.toDER('hex');
+  const derWithHashType = derHex + '01'; // append SIGHASH_ALL
+
+  const derLen = derWithHashType.length / 2;
+  const pubKeyLen = pubHex.length / 2;
+
+  const scriptSigLen = derLen + 1 + pubKeyLen; // sig push + pub push
+  const scriptSigHex =
+    dgb.util.byteHex(derLen) + derWithHashType +
+    dgb.util.byteHex(pubKeyLen) + pubHex;
+
+  // Step 4: Reconstruct full signed tx (replace 00 with actual scriptSig)
+  const preScript = rawTxHex.slice(0, rawTxHex.indexOf('00'));
+  const postScript = rawTxHex.slice(rawTxHex.indexOf('00') + 2);
+  const fullTx = preScript + dgb.util.bytesToHex(scriptSigHex.length / 2) + scriptSigHex + postScript;
+
+  return {
+    r: sig.r.toString(16),
+    s: sig.s.toString(16),
+    der: derHex,
+    derWithHashType,
+    pubKey: pubHex,
+    scriptSig: scriptSigHex,
+    fullInput: preScript + dgb.util.byteHex(scriptSigHex.length / 2) + scriptSigHex + postScript,
+    signedTx: fullTx,
+  };
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+dgb.helper = []
+
+dgb.util.start = function() {
+dgb.query("listunspent").then( unspent =>
+{       
+ux.renderObjectTable('select', unspent.result, ['address','amount'], selected => {
+    dgb.utxo = selected;
+tablet.push(dgb.utxo2change(dgb.utxo[0],3,.1)) 
+  console.log('dgb.utxo:', selected);
+  dgb.raw = dgb.helper.buildRaw( [ [ dgb.utxo[0] ], tablet ] )
+  console.log(tablet);
+    select.innerHTML = "";
+    })
+  })
+}
+
+dgb.util.makeTablet = function() {
+
+tablet = [];
+
+[
+    "DDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "DDoooooooooooooooooooooooooD",
+    "DDoDDDDDDDDDDDDDDDDDDDDDDDoD",
+    "DDoooooooooooDoooooooooooooD",
+    "DDDDDDDDDDDDDoDDDDDDDDDDDDDD"
+   ].forEach( x => unspendable(x)
+    .then( x => { 
+                tablet.push({[x]:0.0000546})
+                })
+    )
+}
+
+
+dgb.helper.u32LE = function u32LE(n) {
+  return ('00000000' + (n >>> 0).toString(16)).slice(-8).match(/../g).reverse().join('');
+}
+
+dgb.helper.u64LE = function u64LE(n) {
+  n = BigInt(n);
+  var hex = n.toString(16).padStart(16, '0');
+  return hex.match(/../g).reverse().join('');
+}
+
+dgb.helper.varInt = function varInt(n) {
+  if (n < 0xfd) return dgb.helper.toHex(n, 1);
+  if (n <= 0xffff) return 'fd' + dgb.helper.toHex(n, 2);
+  if (n <= 0xffffffff) return 'fe' + dgb.helper.toHex(n, 4);
+  return 'ff' + dgb.helper.toHex(n, 8);
+}
+
+dgb.helper.toHex = function toHex(n, bytes) {
+  var hex = n.toString(16).padStart(bytes * 2, '0');
+  return hex.match(/../g).reverse().join('');
+}
+
+dgb.helper.signTXParts = function signTxParts(rawTxHex, privKeyHex) {
+  const versionHex = rawTxHex.slice(0, 8);
+  const locktimeHex = rawTxHex.slice(-8);
+
+  // ----- Extract inputs -----
+  const vinCount = parseInt(rawTxHex.slice(8, 10), 16);
+  if (vinCount !== 1) throw 'Only single input supported';
+  const vinStart = 10;
+  const vinRaw = rawTxHex.slice(vinStart, vinStart + 72); // 32 bytes txid + 4 vout + 1 scriptLen + 4 sequence (no script)
+  const vinTxidLE = vinRaw.slice(0, 64); // txid LE
+  const vinVout = vinRaw.slice(64, 72);
+  const vinSeq = vinRaw.slice(74); // skip scriptLen byte
+
+  // ----- Extract outputs -----
+  const voutCountIndex = vinStart + 72;
+  const voutCount = parseInt(rawTxHex.slice(voutCountIndex, voutCountIndex + 2), 16);
+  const voutStart = voutCountIndex;
+  const locktimeStart = rawTxHex.length - 8;
+  const passthroughVoutHex = rawTxHex.slice(voutStart, locktimeStart);
+
+  // ----- Build preimage for sighash -----
+  const sighashPreimage = rawTxHex.slice(0, locktimeStart) + "01000000"; // append SIGHASH_ALL
+  const hash = dgb.util.sha256(dgb.util.sha256(sighashPreimage));
+
+  // ----- Sign the double hash -----
+  const sigDerPlus01 = dgb.util.signMessage(hash, privKeyHex); // returns DER + '01'
+
+  // ----- Derive pubkey from privKeyHex -----
+  const ec = new elliptic.ec('secp256k1');
+  const pubKeyHex = ec.keyFromPrivate(privKeyHex).getPublic(true, 'hex');
+
+  // ----- Build scriptSig -----
+  const sigPush = (sigDerPlus01.length / 2).toString(16).padStart(2, '0') + sigDerPlus01;
+  const pubPush = (pubKeyHex.length / 2).toString(16).padStart(2, '0') + pubKeyHex;
+  const scriptSig = sigPush + pubPush;
+  const scriptLen = (scriptSig.length / 2).toString(16).padStart(2, '0');
+
+  const signedVinHex = vinTxidLE + vinVout + scriptLen + scriptSig + vinSeq;
+
+  // ----- Final assembly -----
+  const magic = hash; // already double-sha256 hex
+
+  return [versionHex, signedVinHex, passthroughVoutHex, locktimeHex];
+}
+
+
+dgb.helper.buildRaw = function(args, version, locktime) {
+  if (typeof version === 'undefined') version = 2;
+  if (typeof locktime === 'undefined') locktime = 0;
+
+  var ins = args[0];
+  var outs = args[1];
+  var hex = dgb.helper.u32LE(version); // version
+
+  // inputs
+  hex += dgb.helper.varInt(ins.length);
+  for (var i = 0; i < ins.length; i++) {
+    var vin = ins[i];
+    hex += vin.txid.match(/../g).reverse().join(''); // txid LE
+    hex += dgb.helper.u32LE(vin.vout);
+    hex += '00'; // empty scriptSig
+    hex += dgb.helper.u32LE(0xffffffff); // sequence
+  }
+
+  // outputs
+  altOut = []
+  hex += varInt(outs.length);
+  for (var j = 0; j < outs.length; j++) {
+    var o = outs[j];
+
+    if (typeof o.data !== 'undefined') {
+      var dataHex = o.data.toLowerCase();
+      var opReturn = '6a' + dgb.helper.varInt(dataHex.length / 2) + dataHex;
+      hex += dgb.helper.u64LE(0); // zero-value
+      hex += dgb.helper.varInt(opReturn.length / 2) + opReturn;
+    } else {
+      var addr = Object.keys(o)[0];
+      var sats = Math.round(o[addr] * 1e8);
+
+      var pk;
+      if (addr[0] === 'S') {
+        pk = p2shScript(addr); // fake P2SH
+      } else {
+        pk = p2pkhScript(addr); // default to P2PKH
+      }
+
+      altOut += dgb.helper.u64LE(sats);
+      hex += dgb.helper.u64LE(sats);
+      altOut += dgb.helper.varInt(pk.length / 2) + pk;
+      hex += dgb.helper.varInt(pk.length / 2) + pk;
+    }
+  }
+
+  hex += dgb.helper.u32LE(locktime);
+  altOut += dgb.helper.u32LE(locktime);
+  console.log(altOut);
+  return  hex.toLowerCase() ];
+};
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+
 outputs = [];
 
 dgb.chainz = [];
@@ -82,6 +569,13 @@ dgb.grt_0 = hash => dgb.query("getrawtransaction",[hash,0]).then( r => r.result)
 dgb.grt_1 = hash => dgb.query("getrawtransaction",[hash,1]).then( r => r.result);
 dgb.feerate = () => dgb.query("estimatesmartfee",[6]).then( x => x.result ).then( x => x.feerate )
 dgb.usage = () => dgb.query()
+
+dgb.utxo2change = function utxo2change (x,cnt,fee) {
+    burn=(0.0000546*cnt)
+    
+ return  {[x.address]:x.amount-burn-(fee*cnt)}
+}
+ 
 
 dgb.findUTXO = () => dgb.query("listunspent")
   .then(x => x.result)
@@ -429,25 +923,20 @@ fetch("http://127.0.0.1:8080/input1.json").then( x => x.text())
          } )
 */
 /* ── helpers ----------------------------------------------------------- */
-function varInt(n){
-  if(n<0xfd)        return n.toString(16).padStart(2,'0');
-  if(n<=0xffff)     return 'fd'+u32LE(n).slice(0,4);
-  if(n<=0xffffffff) return 'fe'+u32LE(n);
-  return 'ff'+u64LE(BigInt(n));
-}
 
 dgb.filterObviously = function filterObviously(data) {
   const utxos = Array.isArray(data) ? data : data.result;
   return utxos.filter(utxo => !/^D[ABCDE]x/.test(utxo.address));
 }
 
-function b58decode(str){
+/*function b58decode(str){
   let num=0n;
   for(const ch of str) num = num*58n + BigInt(B58.indexOf(ch));
   let hex = num.toString(16); if(hex.length&1) hex='0'+hex;
   for(let i=0;i<str.length&&str[i]==='1';i++) hex='00'+hex;
   return hex;
 }
+*/
 function p2pkhScript(address){
   const hex = b58decode(address);
   const hash160 = hex.slice(2,-8);               // drop version + checksum
@@ -584,3 +1073,19 @@ fetch("http://127.0.0.1:8080/blobimge.json").then( x => x.text())
 */
 // 0200000001630f9c5472a8156594f5a0e45676be75b69cd817bc74007e7b807ee1589234a30000000000ffffffff0370170000000000001976a9144ab91aa91c29b570f982eb485ee909eb0e84e0b088ac70170000000000001976a91455c0355b8a6c08885bf229c31c9a0cd538c2e9b588ac0000000000000000036a010000000000
 
+
+/*
+
+dgb.query("createrawtransaction",[ vin,vout ])
+.then(response => {
+  if (response.error) {
+    console.error("RPC Error:", response.error.message);
+  } else {
+    console.log(response.result);
+  }
+})
+.catch(err => {
+  console.error("Transport error:", err);
+});
+
+*/
