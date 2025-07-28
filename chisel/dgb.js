@@ -481,7 +481,7 @@ dgb.helper.buildRaw = function(args, version, locktime) {
   hex += dgb.helper.u32LE(locktime);
   altOut += dgb.helper.u32LE(locktime);
   console.log(altOut);
-  return  hex.toLowerCase() ];
+  return  hex.toLowerCase();
 };
 
 
