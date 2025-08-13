@@ -1,4 +1,39 @@
 
+function defineConstants(constMap) {
+    for (const [name, value] of constMap) {
+        const desired = (typeof value === 'function') ? value() : value;
+
+        if (typeof globalThis[name] === 'undefined') {
+            globalThis[name] = desired;
+        } else if (globalThis[name] !== desired) {
+            console.warn(`Constant "${name}" already defined with a different value`, {
+                current: globalThis[name],
+                desired
+            });
+        }
+    }
+}
+
+defineConstants([
+    ['B58',       '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'],
+    ['b58_dcmap', `123456789abcdefghjklmnpqrstuvwxyz!)0(=/',i;?"_o}{@+|*.: -~`],
+    ['IDX', () => Object.fromEntries([...B58].map((c, i) => [c, i]))],
+    ['BASE', () => 58n ** 6n],
+    ['MOD32', () => 2n ** 32n],
+    ['MCD', `c123456789ABCDEFGHiJKLMNoPQRSTUVWXYZabdefghjkmnpqrstuvwxyz`],
+    ['BFF', `0123456789abcdefghijklmnopqrstuvwxyz!)(=/',;?"_}{@+|*.: -~`],
+    ['sha', buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b))],
+]);
+
+const toBigInt = bytes => bytes.reduce((n,b)=> (n<<8n) + BigInt(b), 0n);
+
+const u32LE = n => n.toString(16).padStart(8,'0').match(/../g).reverse().join('');
+const u64LE = n => n.toString(16).padStart(16,'0').match(/../g).reverse().join('');
+
+
+
+chisel = []
+chisel.nodeProxy = []
 
 chainz = []
 chainz.apiKey = "2c8cf5f8ed4e"
@@ -12,7 +47,7 @@ chainz.query =  () => fetch(`https://chainz.cryptoid.info/explorer/api.dws?q=sum
 
 fetch("https://chainz.cryptoid.info/explorer/api.dws?q=summary").then( x => x.json())
 
-function fileLoad( name ) {
+chisel.nodeProxy.fileLoad = function fileLoad( name ) {
 
   fetch("http://localhost:7788/load", {
         method: 'POST',
@@ -22,7 +57,7 @@ function fileLoad( name ) {
 
 }
 
-function fileSave( t, name ) {
+chisel.nodeProxy.fileSave = function fileSave( t, name ) {
   fetch('http://localhost:7788/save', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -35,7 +70,8 @@ function fileSave( t, name ) {
   .then(console.log)
   .catch(console.error);
 }
-function fileList() {
+
+chisel.nodeProxy.fileList = function fileList() {
 
 fetch("http://localhost:7788/list").then( x => x.json())
 
@@ -84,18 +120,20 @@ function parseString(input) {
 
 
 /* Functions for unspendable */
+/*
+if(!B58)const B58 =        '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+if(!b58_dcmap)const b58_dcmap  = `123456789abcdefghjklmnpqrstuvwxyz!)0(=/',i;?"_o}{@+|*.: -~`;
 
-const B58 =        '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-const b58_dcmap  = `123456789abcdefghjklmnpqrstuvwxyz!)0(=/',i;?"_o}{@+|*.: -~`;
+if(!IDX)const IDX = Object.fromEntries([...B58].map((c,i)=>[c,i]));
+if(!BASE)const BASE  = 58n ** 6n;          // 58⁶  = 38 068 692 544
+if(!MOD32)const MOD32 = 2n ** 32n;
+*/
 
-const IDX = Object.fromEntries([...B58].map((c,i)=>[c,i]));
-const BASE  = 58n ** 6n;          // 58⁶  = 38 068 692 544
-const MOD32 = 2n ** 32n;
 
 /* BFF (transitional pattern) to MCD (ends up being B58) */
 
-const MCD = `c123456789ABCDEFGHiJKLMNoPQRSTUVWXYZabdefghjkmnpqrstuvwxyz`;
-const BFF = `0123456789abcdefghijklmnopqrstuvwxyz!)(=/',;?"_}{@+|*.: -~`;
+//if(!MCD)const MCD = `c123456789ABCDEFGHiJKLMNoPQRSTUVWXYZabdefghjkmnpqrstuvwxyz`;
+//if(!BFF)const BFF = `0123456789abcdefghijklmnopqrstuvwxyz!)(=/',;?"_}{@+|*.: -~`;
 
 // don't lose the backticks
 // this is mostly for GPT engines, print the array and give it to them
@@ -156,8 +194,9 @@ mcdMap = [
 
 
 /* utils ---------------------------------------------------------- */
-const sha = buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b));
-const toBigInt = bytes => bytes.reduce((n,b)=> (n<<8n) + BigInt(b), 0n);
+// const sha = buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b));
+
+// const toBigInt = bytes => bytes.reduce((n,b)=> (n<<8n) + BigInt(b), 0n);
 function b58ToInt(str){ return [...str].reduce((n,c)=>n*58n + BigInt(IDX[c]), 0n); }
 function intToB58(n, len=6){
   let out = '';
@@ -371,8 +410,8 @@ function jqLogBW(value, indent = 2) {
 }
 
 /* ── helpers ----------------------------------------------------------- */
-const u32LE = n => n.toString(16).padStart(8,'0').match(/../g).reverse().join('');
-const u64LE = n => n.toString(16).padStart(16,'0').match(/../g).reverse().join('');
+// const u32LE = n => n.toString(16).padStart(8,'0').match(/../g).reverse().join('');
+// const u64LE = n => n.toString(16).padStart(16,'0').match(/../g).reverse().join('');
 function varInt(n){
   if(n<0xfd)        return n.toString(16).padStart(2,'0');
   if(n<=0xffff)     return 'fd'+u32LE(n).slice(0,4);
@@ -396,15 +435,15 @@ function p2pkhScript(address){
 /* ── serializer -------------------------------------------------------- */
 function createDGB(args, version=2, locktime=0){
   const [ins, outs] = args;
-  let hex = u32LE(version);                      // version
+  let hex = dgb.helper.u32LE(version);                      // version
 
   /* inputs */
   hex += varInt(ins.length);
   for(const vin of ins){
     hex += vin.txid.match(/../g).reverse().join(''); // txid LE
-    hex += u32LE(vin.vout);
+    hex += dgb.helper.u32LE(vin.vout);
     hex += '00';                                    // empty scriptSig
-    hex += u32LE(0xffffffff);
+    hex += dgb.helper.u32LE(0xffffffff);
   }
 
   /* outputs */
@@ -413,18 +452,18 @@ function createDGB(args, version=2, locktime=0){
     if(o.data!==undefined){                        // OP_RETURN
       const dataHex   = o.data.toLowerCase();
       const opReturn  = '6a'+varInt(dataHex.length/2)+dataHex;
-      hex += u64LE(0n);                            // value = 0
+      hex += dgb.helper.u64LE(0n);                            // value = 0
       hex += varInt(opReturn.length/2) + opReturn;
     }else{
       const addr = Object.keys(o)[0];
       const sats = BigInt(Math.round(o[addr]*1e8));
       const pk   = p2pkhScript(addr);
-      hex += u64LE(sats);
+      hex += dgb.helper.u64LE(sats);
       hex += varInt(pk.length/2) + pk;
     }
   });
 
-  hex += u32LE(locktime);
+  hex += dgb.helper.u32LE(locktime);
   return hex.toLowerCase();
 }
 

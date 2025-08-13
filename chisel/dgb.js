@@ -1,7 +1,154 @@
 
 
 dgb = [];
+
+dgb.debug = [];
+dgb.check = [];
 dgb.util = [];
+
+dgb.check.validateVin = function(obj, onError = console.error) {
+  if (typeof obj !== 'object' || obj === null) {
+    onError('Error: vin must be a non-null object.');
+    return false;
+  }
+  if (!('txid' in obj)) {
+    onError('Error: vin is missing "txid" property.');
+    return false;
+  }
+  if (typeof obj.txid !== 'string') {
+    onError('Error: txid must be a string.');
+    return false;
+  }
+  if (obj.txid.length !== 64) {
+    onError(`Error: txid must be 64 characters long, got ${obj.txid.length}.`);
+    return false;
+  }
+  if (!/^[0-9a-f]{64}$/i.test(obj.txid)) {
+    onError('Error: txid must be a valid 64-character hex string.');
+    return false;
+  }
+  if (!('vout' in obj)) {
+    onError('Error: vin is missing "vout" property.');
+    return false;
+  }
+  if (typeof obj.vout !== 'number' || !Number.isInteger(obj.vout)) {
+    onError('Error: vout must be an integer.');
+    return false;
+  }
+  if (obj.vout < 0) {
+    onError('Error: vout must be non-negative.');
+    return false;
+  }
+  return true;
+}
+
+dgb.util.byteHex = n => n.toString(16).padStart(2, '0')
+dgb.util.privKey2Address = function privKey2Address(wif) {
+
+  const raw = dgb.util.b58ToBytes(wif);
+
+  const hex = dgb.util.bytesToHex(raw);
+  const body = hex.slice(0, -8);
+  const checksum = hex.slice(-8);
+  const hash = dgb.util.sha256(dgb.util.sha256(body)).slice(0, 8);
+
+  const prefix = body.slice(0, 2);
+  const suffix = body.slice(-2);
+  const compressed = suffix === '01';
+
+  const privKey = compressed ? body.slice(2, -2) : body.slice(2);
+    
+  const ec = new elliptic.ec('secp256k1');
+  const key = ec.keyFromPrivate(privKey);
+  const pubKey = key.getPublic(compressed, 'hex');
+      
+  const pubHash = dgb.util.ripemd160(dgb.util.sha256(pubKey));
+  const versioned = '1e' + pubHash; // 0x1e = Digibyte Mainnet pubkeyhash
+  const checksum2 = dgb.util.sha256(dgb.util.sha256(versioned)).slice(0, 8);
+  const addressHex = versioned + checksum2;
+  const address = dgb.util.base58Encode(addressHex);
+
+return {
+    valid: checksum === hash,
+    compressed,
+    privKey,
+    pubKey,
+    pubHash,
+    addressPrefix: '1e',
+    versioned,
+    checksum,
+    address,
+    addressHex,
+    hex,
+    body
+  };
+}
+
+dgb.debug.loadPhrase = loadPhrase = function(pos=0) {
+
+final = []
+    
+const mnemonic = "spider cat cross label end marine soup inflict scissors twelve gaze give";
+
+// Step 1: get root HDNode from mnemonic
+const root = ethers58.utils.HDNode.fromMnemonic(mnemonic);
+
+// Step 2: derive Digibyte path (BIP44 / coin_type 20)
+const dgbNode = root.derivePath("m/44'/20'/0'/0/" + pos);
+
+privKey = dgbNode.privateKey.substr(2);
+pubKey = dgbNode.publicKey.substr(2);
+final.privKey = dgbNode.privateKey
+final.pubkey = dgbNode.publicKey
+const ec = new elliptic.ec('secp256k1');
+
+const key = ec.keyFromPrivate(privKey);
+const pubHash = dgb.util.ripemd160(dgb.util.sha256(pubKey));
+const versioned = '1e' + pubHash; // 0x1e = Digibyte Mainnet pubkeyhash
+const checksum = dgb.util.sha256(dgb.util.sha256(versioned)).slice(0, 8);
+
+wifChecksum = dgb.util.sha256(dgb.util.sha256('80' + privKey + '01')).substr(0,8)    
+
+return {   
+    address : dgb.util.base58Encode('1e' + pubHash + checksum),
+    pubHash : "0x" + pubHash,
+    privKey : dgbNode.privateKey,
+    pubKey  : dgbNode.publicKey,
+    fingerprint : dgbNode.fingerprint,
+    chainCode : dgbNode.chainCode,
+    checksum : wifChecksum
+    }
+}
+
+dgb.util.getMnemonicAddress = loadPhrase = function(mnemonic,pos=0) {
+
+if( !mnemonic.length )   
+   mnemonic = ethers58.Wallet.createRandom().mnemonic.phrase
+    
+const root = ethers58.utils.HDNode.fromMnemonic(mnemonic);
+const dgbNode = root.derivePath("m/44'/20'/0'/0/" + pos);
+const privKey = dgbNode.privateKey.substr(2);
+const pubKey = dgbNode.publicKey.substr(2);
+const ec = new elliptic.ec('secp256k1');
+
+const key = ec.keyFromPrivate(privKey);
+const pubHash = dgb.util.ripemd160(dgb.util.sha256(pubKey));
+const versioned = '1e' + pubHash; // 0x1e = Digibyte Mainnet pubkeyhash
+const checksum = dgb.util.sha256(dgb.util.sha256(versioned)).slice(0, 8);
+const version = '80'
+const compression = '01'    
+const privKeyExp = version + privKey + compression
+const wifChecksum = dgb.util.sha256(dgb.util.sha256(privKeyExp)).substr(0,8) 
+const privKeyWif = dgb.util.base58Encode(privKeyExp + wifChecksum)
+
+return {   
+    address : dgb.util.base58Encode('1e' + pubHash + checksum),
+    pubHash : "0x" + pubHash,
+    node : dgbNode,
+    privKeyWif
+    }
+}
+
 
 dgb.util.hexToBytes = function hexToBytes(hex) {
   return Uint8Array.from(hex.match(/.{2}/g).map(b => parseInt(b, 16)));
@@ -33,6 +180,37 @@ dgb.util.ripemd160 = function(hex) {
   const wordArray = CryptoJS.lib.WordArray.create(bytes);
   return CryptoJS.RIPEMD160(wordArray).toString(CryptoJS.enc.Hex);
 }
+
+/*
+RiPEMD16ceƒdHEXb q
+  ∆0 ∆1 e ∂0rdHEXb; 
+  ∆0 ∆4 e CryptoJS.lib.WordArray.create(bytes);
+  ® CryptoJS.RiPEMD16c(wordArray).toString(CryptoJS.enc.Hex);
+p
+
+   ABCDEFGHJKLM <-- single char meaning 
+   NPQRST 
+   UVWXYZ 
+
+const charMap = {
+  a: 'A', b: 'B',
+  c: 'C', v: '.', w: ':', x: ' ',
+  y: '-', z: '#'
+};
+
+"1axbvcdy".replace(/[abcvwxyz]/g, c => charMap[c] || c);
+
+function transformLine(u, a , d) {
+  return u.replace(/e/g, '=')
+          .replace(/d/g, '(')
+          .replace(/b/g, ')')
+          .replace(/q/g, '{')
+          .replace(/p/g, '}')
+          .replace(/∆(\d+)/g, (_, n) => a[Number(n)])
+          .replace(/∂(\d+)/g, (_, n) => d[Number(n)])
+}
+
+*/
 
 dgb.b58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
@@ -148,8 +326,6 @@ dgb.util.base58Encode = function base58Encode(hex) {
   return result;
 }
 
-
-
 dgb.util.pubKeyToAddress = function(pubKeyHex) {
 
   const pubBytes = Uint8Array.from(pubKeyHex.match(/.{2}/g).map(h => parseInt(h, 16)));
@@ -168,8 +344,6 @@ dgb.util.pubKeyToAddress = function(pubKeyHex) {
   console.log(addressHex);
 //  return dgb.util.base58Encode(addressHex);
 }
-
-
 
 
 dgb.util.wifDecode = function wifDecode(wif) {
@@ -279,10 +453,6 @@ dgb.util.signMessageCompact = function(messageHex, privKeyHex, compressed=true) 
   const base64sig = btoa(String.fromCharCode.apply(null, sigBytes));
   return base64sig;
 }
-
-//dgb.util.bytesToHex = function(n) {
-//  return n.toString(16).padStart(2, '0');
-//}
 
 dgb.util.signVinDetailed = function(rawTxHex, privHex, pubHex) {
   const ec = new elliptic.ec('secp256k1');
@@ -442,6 +612,9 @@ dgb.helper.buildRaw = function(args, version, locktime) {
   // inputs
   hex += dgb.helper.varInt(ins.length);
   for (var i = 0; i < ins.length; i++) {
+  console.log(ins);
+  const valid = dgb.check.validateVin(ins[i], msg => alert(msg));
+  if(!valid) return false;
     var vin = ins[i];
     hex += vin.txid.match(/../g).reverse().join(''); // txid LE
     hex += dgb.helper.u32LE(vin.vout);
@@ -483,8 +656,6 @@ dgb.helper.buildRaw = function(args, version, locktime) {
   console.log(altOut);
   return  hex.toLowerCase();
 };
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -590,120 +761,6 @@ dgb.findUTXO = () => dgb.query("listunspent")
 
 // outputs.push("{data: " + toHex("Web3 must be hacked into POW ledgers.") + "}" )
 
-dgb.chiselWChange = function buildChiselTxWithChange(utxos, tablet, opret, changeAddress, fee = 0.0001, burn = 0.00001132) {
-  const toHex = (s) => /^[0-9a-fA-F]+$/.test(s) && s.length % 2 === 0
-    ? s.toLowerCase()
-    : Array.from(new TextEncoder().encode(s)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-  const opretHex = toHex(opret);
-  const outputs = [];
-
-  // Add burn outputs
-  tablet.forEach(addr => {
-    const clean = addr.trim();
-    if (!clean.toLowerCase().startsWith("change") && !clean.includes("instruction")) {
-      const o = {};
-      o[clean] = burn;
-      outputs.push(o);
-    }
-  });
-
-  // Add OP_RETURN
-  outputs.push({ data: opretHex });
-
-  // Calculate total output value
-  const totalOutput = outputs
-    .filter(o => !o.data)
-    .reduce((sum, o) => sum + Object.values(o)[0], 0);
-
-  const totalCost = totalOutput + fee;
-
-  // Select UTXOs until we meet or exceed cost
-  let totalInput = 0;
-  const inputs = [];
-  for (let utxo of utxos) {
-    inputs.push({ txid: utxo.txid, vout: utxo.vout });
-    totalInput += utxo.amount;
-    if (totalInput >= totalCost) break;
-  }
-
-  if (totalInput < totalCost) {
-    throw new Error(`Insufficient funds: need ${totalCost}, have ${totalInput}`);
-  }
-
-  // Add change output if there's leftover
-  const change = +(totalInput - totalCost).toFixed(8);
-  if (change > 0) {
-    const c = {};
-    c[changeAddress] = change;
-    outputs.push(c);
-  }
-
-  return [inputs, outputs];
-}
-
-dgb.chiselExplicit = function buildChiselTxWithExplicitChange(utxos, tablet, opret, fee = 0.0001, burn = 0.0001132) {
-  const toHex = (s) =>
-    /^[0-9a-fA-F]+$/.test(s) && s.length % 2 === 0
-      ? s.toLowerCase()
-      : Array.from(new TextEncoder().encode(s))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join('');
-
-  const opretHex = toHex(opret);
-  const outputs = [];
-
-  // Look for bech32 or tagged "change:" address in the tablet
-  const changeAddr = tablet.find(x =>
-    x.startsWith("dgb1") || x.toLowerCase().startsWith("change:")
-  )?.replace(/^change:\s*/i, '');
-
-  const filteredTablet = tablet.filter(x => {
-    const addr = x.toLowerCase();
-    return !addr.startsWith("change:") && !addr.startsWith("dgb1") && !addr.includes("instruction");
-  });
-
-  // Burn outputs
-  filteredTablet.forEach(addr => {
-    const o = {};
-    o[addr] = burn;
-    outputs.push(o);
-  });
-
-  // OP_RETURN
-  outputs.push({ data: opretHex });
-
-  // Calculate totals
-  const totalOutput = outputs
-    .filter(o => !o.data)
-    .reduce((sum, o) => sum + Object.values(o)[0], 0);
-
-  const totalCost = totalOutput + fee;
-
-  // Input selection
-  let totalInput = 0;
-  const inputs = [];
-  for (let utxo of utxos) {
-    inputs.push({ txid: utxo.txid, vout: utxo.vout });
-    totalInput += utxo.amount;
-    if (totalInput >= totalCost) break;
-  }
-
-  if (totalInput < totalCost) {
-    throw new Error(`Insufficient funds: need ${totalCost}, have ${totalInput}`);
-  }
-
-  // Assign leftover to changeAddr if present
-  const change = +(totalInput - totalCost).toFixed(8);
-  if (changeAddr && change > 0) {
-    const o = {};
-    o[changeAddr] = change;
-    outputs.push(o);
-  }
-
-  return [inputs, outputs];
-}
-
 dgb.createRawTabletTx = function(utxo, tablet, opret) {
   const toHex = (s) => {
     if (/^[0-9a-fA-F]+$/.test(s) && s.length % 2 === 0) return s.toLowerCase();
@@ -736,7 +793,6 @@ dgb.createRawTabletTx = function(utxo, tablet, opret) {
     outputs  // outputs as array of single-key objects
   ];
 }
-
 
 dgb.chainz = [];
 dgb.chainz.txinfo =   hash => fetch("https://chainz.cryptoid.info/dgb/api.dws?q=txinfo&t=" + hash).then( x => x.json())
@@ -797,45 +853,6 @@ function utf8ToHex(str) {
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
 }
-
-dgb.buildchiselTx = function buildChiselTx(utxos, [tablet, opRetStr, tipAmount]) {
-  const BURN_AMOUNT = 0.00001132;
-
-  if (!Array.isArray(tablet)) throw new Error("Tablet must be an array of addresses.");
-
-  const inputs = Array.isArray(utxos) ? utxos : utxos.result;
-  if (inputs.length === 0) throw new Error("No inputs provided.");
-
-  const totalIn = inputs.reduce((sum, u) => sum + u.amount, 0);
-  const changeAddr = inputs[0].address;
-
-  const totalBurn = BURN_AMOUNT * tablet.length;
-  const op_return_hex = utf8ToHex(opRetStr);
-  const change = totalIn - totalBurn - tipAmount;
-
-  if (change < 0) throw new Error("Not enough input for burn + tip.");
-
-  // Build outputs in exact order
-  const outputs = [];
-
-  // Tablet burns first
-  tablet.forEach(addr => {
-    outputs.push({ [addr] : BURN_AMOUNT });
-  });
-
-  // Then change
-  outputs.push({ [changeAddr] : parseFloat(change.toFixed(8)) } );
-
-  // Then OP_RETURN
-  outputs.push({ data: op_return_hex });
-
-
-  return [
-    inputs.map(u => ({ txid: u.txid, vout: u.vout })),
-    outputs // This is NOT an object
-  ];
-}
-
 
 
 /*
@@ -929,27 +946,16 @@ dgb.filterObviously = function filterObviously(data) {
   return utxos.filter(utxo => !/^D[ABCDE]x/.test(utxo.address));
 }
 
-/*function b58decode(str){
-  let num=0n;
-  for(const ch of str) num = num*58n + BigInt(B58.indexOf(ch));
-  let hex = num.toString(16); if(hex.length&1) hex='0'+hex;
-  for(let i=0;i<str.length&&str[i]==='1';i++) hex='00'+hex;
-  return hex;
-}
-*/
 function p2pkhScript(address){
   const hex = b58decode(address);
   const hash160 = hex.slice(2,-8);               // drop version + checksum
   return '76a914'+hash160+'88ac';                // OP_DUP OP_HASH160 <20B> OP_EQUALVERIFY OP_CHECKSIG
 }
 
-
-
 function p2shScript(addr) {
   const hash160 = b58checkDecode(addr).hex;
   return 'a914' + hash160 + '87';
 }
-
 
 function p2pkhScriptUnvalidated(addr) {
   // decode base58check without validating prefix
@@ -964,7 +970,6 @@ function p2pkhScriptUnvalidated(addr) {
   return '76a914' + pubKeyHash + '88ac';        // OP_DUP OP_HASH160 <hash> OP_EQUALVERIFY OP_CHECKSIG
 }
 
-
 /* ── serializer -------------------------------------------------------- */
 dgb.buildRaw = function buildRaw(args, version=2, locktime=0){
   const [ins, outs] = args;
@@ -973,6 +978,7 @@ dgb.buildRaw = function buildRaw(args, version=2, locktime=0){
   /* inputs */
   hex += varInt(ins.length);
   for(const vin of ins){
+    if (!dgb.check.validateVin(input, msg => alert(msg))) return false;
     hex += vin.txid.match(/../g).reverse().join(''); // txid LE
     hex += u32LE(vin.vout);
     hex += '00';                                    // empty scriptSig
@@ -1089,3 +1095,43 @@ dgb.query("createrawtransaction",[ vin,vout ])
 });
 
 */
+
+
+async function shoctal(input) {
+  // 1. Compute SHA-1 hash (shasum is SHA-1)
+  const msgUint8 = new TextEncoder().encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+  // 2. Get first 2 bytes (4 hex chars)
+  const firstTwoBytes = hashArray.slice(0, 2);
+  const hexStr = firstTwoBytes.map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // 3. Convert hex to number
+  const num = parseInt(hexStr, 16);
+
+  // 4. Convert to octal string
+  const octalStr = num.toString(8);
+
+  // 5. Shift octal digits +2 (wrap in 0-7 range, but your tr changes '0->2', '1->3' ... '7->9')
+  // Your tr '01234567' -> '23456789' maps digits:
+  // '0'->'2', '1'->'3', '2'->'4', '3'->'5', '4'->'6', '5'->'7', '6'->'8', '7'->'9'
+
+  const shiftedOctal = octalStr.split('').map(d => {
+    const digit = parseInt(d, 8);
+    return (digit + 2).toString(); // no wrap, goes up to 9 (which is decimal digit)
+  }).join('');
+
+  // 6. Prefix each digit with '02' and join with spaces or newlines as in your echo
+  const result = shiftedOctal.split('').map(d => '02' + d).join(' ');
+
+  return result;
+}
+
+// Example usage:
+(async () => {
+  const example = "∆µç∂ () { : fuck.you ma.ma.lu; }";
+  const encoded = await shoctal(example);
+  console.log(encoded);
+})();
+
