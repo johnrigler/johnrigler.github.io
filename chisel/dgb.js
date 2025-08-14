@@ -1166,11 +1166,3 @@ dgb.util.digiAddress = async function digiAddress( address ) {
               .then( x => utxo = x)
 }
 
-
-// Example usage:
-(async () => {
-  const example = "∆µç∂ () { : fuck.you ma.ma.lu; }";
-  const encoded = await shoctal(example);
-  console.log(encoded);
-})();
-
