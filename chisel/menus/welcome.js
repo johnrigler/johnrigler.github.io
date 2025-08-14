@@ -1,57 +1,39 @@
-mainMenu.items.welcome.html = `
+window.chiselMenu[idx("welcome")].html = `
+      <section style="padding: 1em; font-family: sans-serif; line-height: 1.6;">
+        <h1 style="margin-top: 0;">Welcome to Mogwai / Chisel</h1>
+        <p><strong>Chisel</strong> is a lightweight interface for inscribing human-readable data directly onto the <strong>Digibyte</strong> blockchain.</p>
 
-<section style="text-align:center; padding:1.5em; margin:auto;">
-  <div style="display:flex; gap:10px; align-items:center; justify-content:center;">
-    
-    <div style="width:250px; height:250px; display:flex; align-items:center; justify-content:center;">
-      <img src="mogwaiOrig.png" alt="Original"
-           style="max-width:100%; max-height:100%; object-fit:contain;">
-    </div>
+        <p>This tool is designed for both newcomers and experienced users of Bitcoin-style ledgers. You can use it:</p>
+        <ul>
+          <li>Right here on this site (GitHub Pages)</li>
+          <li>From a local folder</li>
+          <li>From IPFS (fully decentralized)</li>
+        </ul>
 
-    <div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center;">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 20"
-           style="width:80%; height:auto;">
-        <rect x="0" y="6" width="22" height="8" fill="white" />
-        <polygon points="22,0 36,10 22,20" fill="white" />
-      </svg>
-    </div>
+        <p>No account is needed. No backend is required. You work entirely in the browser—by default, using public APIs.</p>
 
-    <div style="width:250px; height:250px; display:flex; align-items:center; justify-content:center;">
-      <img src="mogwaiPixel.png" alt="Chisel demo"
-           style="max-width:100%; max-height:100%; object-fit:contain;">
-    </div>
+        <h2>Optional Power Tools</h2>
+        <p>For deeper integration and permanence, you can connect Chisel to your own node:</p>
+        <ul>
+          <li><strong>digibyted</strong> – allows Chisel to query and broadcast directly to the chain without public APIs</li>
+          <li><strong>Node.js + Proxy Script</strong> – needed to bridge your local digibyted node to the browser</li>
+          <li><strong>Advanced File Options</strong> - the proxy script doubles as a nodejs local file api</li>
+        </ul>
 
-   <div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center;">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 20"
-           style="width:80%; height:auto;">
-        <rect x="0" y="6" width="22" height="8" fill="white" />
-        <polygon points="22,0 36,10 22,20" fill="white" />
-      </svg>
-    </div>
+        <p>You can generate this proxy script from the Config section in the hamburger menu.</p>
 
-    <div style="width:250px; height:250px; display:flex; align-items:center; justify-content:center;">
-      <img src="mogwaiLedger.png" alt="Chisel demo"
-           style="max-width:100%; max-height:100%; object-fit:contain;">
-    </div>
+        <h2>What You Can Do Here</h2>
+        <ul>
+          <li>Compose MacDougall-style text inscriptions</li>
+          <li>Draw or import PNGs to encode visually</li>
+          <li>Build and sign transactions</li>
+          <li>Save or reload entire project state</li>
+        </ul>
 
-  </div>
-</section>
+        <p>Everything is portable, readable, and built to survive.</p>
 
-<section style="text-align:center; padding:1.5em; max-width:220px; margin:auto;">
-
-
-  <h1 style="font-size:1.8em; margin-bottom:0.5em;">Try Chisel</h1>
-  <p style="font-size:1.1em; line-height:1.4;">
-    Create Blockchain Images and Messages on the Digibyte network.  
-    Tap into the power of the forever Web.
-  </p>
-
-   <button
-     style="display:inline-block; margin-top:1em; padding:0.6em 1.2em; 
-            background:#0074D9; color:white; border:none; border-radius:6px; 
-            font-weight:bold; cursor:pointer;" onclick="wallet.click()">
-     Go to Wallet
-   </button>
-
-</section>
+        <p style="margin-top: 2em; font-style: italic; color: #666;">
+          Chisel is part of the <strong>Mogwai</strong> toolkit, which aims to give everyday people the power to write directly into the permanent public record.
+        </p>
+      </section>
     `;
