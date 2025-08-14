@@ -1128,6 +1128,45 @@ async function shoctal(input) {
   return result;
 }
 
+dgb.util.getUTXOs = function getUTXOs(transactions, filterAddress) {
+  const spent = new Set();
+
+  // Mark all spent outputs
+  transactions.forEach(tx => {
+    tx.vin.forEach(input => {
+      spent.add(input.txid + ':' + input.vout);
+    });
+  });
+
+  // Collect unspent outputs, optionally filter by address
+  const utxos = [];
+  transactions.forEach(tx => {
+    tx.vout.forEach((out, index) => {
+      const outpoint = tx.txid + ':' + index;
+      if (!spent.has(outpoint)) {
+        if (!filterAddress || out.scriptpubkey_address === filterAddress) {
+          utxos.push({
+            txid: tx.txid,
+            vout: index,
+            address: out.scriptpubkey_address,
+            value: out.value
+          });
+        }
+      }
+    });
+  });
+
+  return utxos;
+}
+
+dgb.util.digiAddress = async function digiAddress( address ) {
+    url = `https://digiexplorer.info/api/address/${address}/txs`;
+    return await fetch(url).then( x => x.json() )
+              .then( x => dgb.util.getUTXOs(x, address ))
+              .then( x => utxo = x)
+}
+
+
 // Example usage:
 (async () => {
   const example = "∆µç∂ () { : fuck.you ma.ma.lu; }";

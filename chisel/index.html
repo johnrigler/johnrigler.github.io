@@ -2,7 +2,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chisel GUI</title>
+
+
+  <title>Chisel</title>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.8.0/dist/ethers.umd.min.js"
                onload="window.ethers58 = window.ethers; delete window.ethers;"></script>
@@ -10,11 +12,12 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
   <script src="elliptic.6_5_4.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
-  <script src="dgb.js?1345"></script>
+  <script src="dgb.js?13fddsf45"></script>
   <script src="chisel.js"</script>
   <!--- script src="colorpicker.js"></script --->
   <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 
+  <link rel="stylesheet" href="css/style.css?12345">
 
 
 </head>
@@ -46,7 +49,7 @@ Promise.all([
   loadScript("../lib/menu.js")
     .then(() => loadScript("menus/main.js"))
     .then(() => Promise.all(
-      ["welcome", "demo","address","import","about","wallet"].map(id =>
+      ["welcome", "demo","address","import","tablet","about","wallet"].map(id =>
         loadScript(`menus/${id}.js`)
       )
     ))
@@ -94,14 +97,15 @@ getCharCount = function getCharCount() {
 function showPage(id, event) {
 
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      c("showPage",id,event)
-      temp = [ id, event ]
-//         {
+      document.querySelectorAll('.btn').forEach(p => p.classList.remove('active'));
+  //    c("showPage",id,event)
+   //   temp = [ id, event ]
          document.querySelector(`#section-${id}`).classList.add('active');
-         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-         if (event && event.target) event.target.classList.add('active');
+     //    document.querySelectorAll('nav btn').forEach(b => b.classList.remove('active'));
+         if (event && event.target) {
+            event.target.classList.add('active');
+         }
          choice = mainMenu.tools.get(id)
-  //       }
       }
 
 buildInterface = function buildInterface(menu) {
@@ -110,7 +114,7 @@ buildInterface = function buildInterface(menu) {
       const root = document.getElementById('app');
       root.innerHTML = '';
       const header = document.createElement('header');
-      header.innerHTML = '<h1>Chisel Interface</h1>';
+      header.innerHTML = '<h2>Chisel Interface</h2>';
       const nav = document.createElement('nav');
       const main = document.createElement('div');
       root.appendChild(header);
@@ -129,8 +133,8 @@ buildInterface = function buildInterface(menu) {
 
       const btn = document.createElement('button');
       btn.textContent = choice.label;
-      btn.name = id;
-      btn.id = id;
+   //   btn.name = id;
+      btn.id = "btn-" + id; btn.className = "btn";
       console.log(id)
       btn.onclick = function (e) { showPage(id, e); };
       root.appendChild(btn);
@@ -175,13 +179,15 @@ buildInterface = function buildInterface(menu) {
 
       root.appendChild(footer);
 
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = './css/style.css';  // relative path to your file
-    document.head.appendChild(link);
+//    const link = document.createElement('link');
+//    link.rel = 'stylesheet';
+//    link.href = './css/style.css';  // relative path to your file
+//    document.head.appendChild(link);
 
       showPage("welcome");
       loadAddressData("DDDDDDDDDDDDDDDDDDDDDDDDDDDD5SVJPi");
+      document.getElementById('tablet').style.display = 'block';
+
     }
 
 
