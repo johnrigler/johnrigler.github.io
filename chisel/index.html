@@ -49,7 +49,7 @@ Promise.all([
   loadScript("../lib/menu.js")
     .then(() => loadScript("menus/main.js"))
     .then(() => Promise.all(
-      ["welcome", "demo","address","import","tablet","about","wallet"].map(id =>
+      ["welcome", "demo","address","import","tablet","about","wallet","whitepaper"].map(id =>
         loadScript(`menus/${id}.js`)
       )
     ))
