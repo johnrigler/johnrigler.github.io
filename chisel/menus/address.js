@@ -1,3 +1,23 @@
+
+canvases = []
+tablets = []
+tabs = []
+canvi = []
+colorMap0 = []
+
+async function loadAll(b57file = "b57.json") {
+      await Promise.all([
+        fetch(b57file).then(res => res.json()).then(data => {
+          data.forEach(entry => {
+            const rgbArray = entry.rgb.split(',').map(v => parseInt(v.trim(), 10));
+            colorMap0[entry.b57] = rgbArray;
+          });
+        })
+      ]);
+    }
+
+loadAll();
+
 async function loadAddressData( address ) {
     const url = `https://digiexplorer.info/api/address/${address}/txs`;
     const container = document.getElementById("section-address"); // replace with actual div id
@@ -10,6 +30,7 @@ async function loadAddressData( address ) {
 
         // Find account amount (sum of UTXOs to address - spent)
         const balance = txs.reduce((bal, tx) => {
+            c(tx.status.block_height)
             tx.vout.forEach(v => {
                 if (v.scriptpubkey_address === address) {
                     bal += v.value;
@@ -79,6 +100,14 @@ async function loadAddressData( address ) {
         html += `</table>`;
         container.innerHTML = html;
 
+canvi.forEach( x =>  {
+ canvas = document.getElementById(`canvas-${x}`)
+ chisel.drawCharTabletImage(tabs.pop(),canvas);
+})
+
+
+
+
     } catch (e) {
         container.innerHTML = "Error loading data";
         console.error(e);
@@ -93,10 +122,29 @@ function renderInfoView(tx) {
         }
     });
     html += "<br><strong>Outputs:</strong><br>";
+    html2 = ""
+
+    tablet = []
+   
+    needCanvas = 0; 
     tx.vout.forEach(v => {
-        html += `${v.scriptpubkey_address || "unknown"}: ${v.value / 1e8} DGB<br>`;
+        value = v.value / 1e8;
+        if(value == 0.0000546 && v.scriptpubkey_address.substr(0,2)=="SN" ) 
+         {
+          needCanvas = 1;
+          tablet.push(v.scriptpubkey_address);
+         }
+        else
+          html2 += `${v.scriptpubkey_address || "unknown"}: ${v.value / 1e8} DGB<br>`;
     });
-    return "<pre>" + html + "</pre>";
+    if(needCanvas)
+         {
+    
+    tabs.push(tablet);
+    canvi.push(tx.txid);
+    html += `<canvas id=${"canvas-" + tx.txid}></canvas><br>`;
+         }
+    return "<pre>" + html + "</pre><hr>" + "<pre>" + html2 + "</pre>";
 }
 
 function setDetailsView(idx, mode) {
