@@ -1166,3 +1166,8 @@ dgb.util.digiAddress = async function digiAddress( address ) {
               .then( x => utxo = x)
 }
 
+dgb.util.digiTX = async function digiTx( tx ) {
+    url = `https://digiexplorer.info/api/tx/${tx}`;
+    return await fetch(url).then( x => x.json() )
+}
+

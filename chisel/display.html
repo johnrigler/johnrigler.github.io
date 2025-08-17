@@ -1,14 +1,19 @@
 <html>
 <head>
-  <script src="dgb.js"></script>
+  <script src="dgb.js?asdf"></script>
   <script src="chisel.js"></script>
 </head>
 <body>
+  <div id="blockExplorer"></div>
   <div id="container"></div>
-
+</body>
   <script>
     tablet = []
     colorMap = []
+    txid = "d8eef1586bb88d192d3284726407c307f0c54b1c023b7ef343e401eb89ea098d"
+    remote = 1 // no local core server
+
+    blockExplorer.innerHTML=`<a href=https://chainz.cryptoid.info/dgb/tx.dws?${txid}.htm> View on Block Explorer`
 
     // Create layout dynamically
     const container = document.getElementById("container");
@@ -32,11 +37,7 @@
 
     async function loadAll(txid, b57file = "b57.json") {
       await Promise.all([
-        dgb.grt_1(txid).then(result => {
-          result.vout.forEach(x => {
-            tablet.push(x.scriptPubKey.address);
-          });
-        }),
+        getTx(txid,tablet,1),
         fetch(b57file).then(res => res.json()).then(data => {
           data.forEach(entry => {
             const rgbArray = entry.rgb.split(',').map(v => parseInt(v.trim(), 10));
@@ -72,8 +73,26 @@ function drawCharTabletImage(output, scale = 8) {
   }
 }
 
+
+function getTx(txid, tablet, remote = 0) {
+
+if(remote == 1){         
+cmd="dgb.util.digiTX"
+search="x.scriptpubkey_address"
+} 
+else {
+cmd="dgb.grt_1"
+search="x.scriptPubKey.address"
+}
+  eval(cmd)(txid).then(result => {
+     result.vout.forEach(x => {
+     tablet.push(eval(search));
+     });
+  })
+} 
+
     // Load data and render
-    loadAll("d8eef1586bb88d192d3284726407c307f0c54b1c023b7ef343e401eb89ea098d").then(tablet => {
+    loadAll(txid).then(tablet => {
       const buckets = {};
       tablet.forEach(line => {
         const key = line.charAt(0);
@@ -148,15 +167,12 @@ if (buckets["D"]) {
   });
 }
 
-
-
       Object.entries(buckets).forEach(([key, arr]) => {
         if (key !== "S" && key !== "D") {
           console.log(`Lines starting with ${key}:`, arr);
         }
       });
     });
-  </script>
-</body>
+</script>
 </html>
 
