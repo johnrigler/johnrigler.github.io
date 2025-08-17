@@ -22,13 +22,13 @@ defineConstants([
     ['MOD32', () => 2n ** 32n],
     ['MCD', `c123456789ABCDEFGHiJKLMNoPQRSTUVWXYZabdefghjkmnpqrstuvwxyz`],
     ['BFF', `0123456789abcdefghijklmnopqrstuvwxyz!)(=/',;?"_}{@+|*.: -~`],
-    ['sha', buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b))],
 ]);
 
 const toBigInt = bytes => bytes.reduce((n,b)=> (n<<8n) + BigInt(b), 0n);
 
 const u32LE = n => n.toString(16).padStart(8,'0').match(/../g).reverse().join('');
 const u64LE = n => n.toString(16).padStart(16,'0').match(/../g).reverse().join('');
+sha = buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b));
 
 
 
@@ -76,6 +76,44 @@ chisel.nodeProxy.fileList = function fileList() {
 fetch("http://localhost:7788/list").then( x => x.json())
 
 }
+
+chisel.drawCharTabletImage = function drawCharTabletImage(output, canvas, scale = 8) {
+  if (!Array.isArray(output) || output.length === 0) return;
+
+  const rows = output.length;
+  const cols = output[0].length - 8; // exclude first 2 and last 6 chars
+// console.log(canvasId);
+
+ // const canvas = document.getElementById(txid);
+  console.log(canvas);
+  const ctx = canvas.getContext('2d');
+
+console.log(canvas, canvas instanceof HTMLCanvasElement);
+console.log(ctx);
+
+    
+  canvas.width = cols * scale;
+  canvas.height = rows * scale;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let y = 0; y < rows; y++) {
+    const line = output[y];
+    for (let x = 0; x < cols; x++) {
+      const ch = line[x + 2]; // skip first 2 chars
+      const rgb = colorMap0[ch] || [0, 0, 0];
+      ctx.fillStyle = `rgb(${rgb.join(',')})`;
+
+//        ctx.fillStyle = `rgb(${(x*30)%255}, ${(y*30)%255}, 150)`;
+// ctx.fillRect(x * scale, y * scale, scale, scale);
+
+        
+   //   console.log(rgb);   
+      ctx.fillRect(x * scale, y * scale, scale, scale);
+   //     console.log(ctx);
+    }
+  }
+}
+
 
 async function fSfLoop(array) {
   const used = new Set();
