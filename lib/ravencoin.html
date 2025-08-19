@@ -1,0 +1,34 @@
+<script>
+
+data = []
+async function callRavencoinRPC(first,rest = []) {
+  const url = "https://rvn-rpc-mainnet.ting.finance/rpc";
+
+  const payload = {
+    method: first,
+    params: rest,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}`);
+    }
+
+    data = await response.json();
+  //  console.log(data); // Same as `jq .`
+  } catch (err) {
+    console.error("Error:", err);
+  }
+}
+
+// callRavencoinRPC();
+</script>
+

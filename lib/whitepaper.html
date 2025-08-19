@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chisel & the Digital Leviathan — A White Paper</title>
+  <style>
+    :root {
+      --bg:#0e0f11; --panel:#14161a; --ink:#e7eef7; --muted:#9aa7b4; --accent:#5dd4ff;
+      --edge:#23272f; --good:#7bd88f; --warn:#ffdd57; --bad:#ff7a90;
+      --mono: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      --sans: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+    }
+    * { box-sizing:border-box }
+    html,body { height:100% }
+    body {
+      margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 var(--sans);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    a { color:var(--accent); text-decoration:none }
+    a:hover { text-decoration:underline }
+    header {
+      background:linear-gradient(180deg,#0e0f11,#11151a);
+      border-bottom:1px solid var(--edge);
+      position:sticky; top:0; z-index:10;
+    }
+    .wrap { max-width:1000px; margin:auto; padding:20px }
+    .title { display:flex; align-items:center; gap:14px }
+    .badge { font:12px var(--mono); color:#111; background:var(--accent); padding:4px 8px; border-radius:999px }
+    h1 { font-size:28px; margin:6px 0 4px }
+    h2 { margin-top:34px; border-top:1px solid var(--edge); padding-top:20px; font-size:22px }
+    h3 { margin-top:20px; font-size:18px; color:#c9d6e2 }
+    p { margin:12px 0 }
+    .muted { color:var(--muted) }
+    .panel {
+      background:var(--panel); border:1px solid var(--edge); border-radius:12px; padding:16px; margin:16px 0;
+    }
+    .toc a { display:block; padding:6px 0 }
+    code, pre { font-family:var(--mono); font-size:13px; background:#0b0d10; color:#d6e2f0 }
+    pre { padding:12px; border:1px solid var(--edge); border-radius:10px; overflow:auto }
+    ul,ol { padding-left:22px }
+    .grid { display:grid; gap:16px }
+    @media (min-width:900px){ .grid-2 { grid-template-columns:1fr 1fr } }
+    .callout { border-left:4px solid var(--accent); padding:10px 12px; background:#0c1116; border-radius:8px }
+    .ok { color:var(--good) } .warn { color:var(--warn) } .bad { color:var(--bad) }
+    footer { border-top:1px solid var(--edge); margin-top:40px; padding:20px 0; color:var(--muted) }
+    .kicker { letter-spacing:.12em; font:12px var(--mono); color:var(--muted) }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="title">
+      <div class="badge">WHITE PAPER</div>
+      <div>
+        <div class="kicker">Chisel • Self-Sovereign Social Data • IPFS-ready</div>
+        <h1>Chisel &amp; the Digital Leviathan</h1>
+        <div class="muted">User-controlled social media, without gatekeepers.</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel toc" id="toc">
+    <strong>Contents</strong>
+    <a href="#abstract">Abstract</a>
+    <a href="#why-control">1) Why we need control of our own social media experiences</a>
+    <a href="#how-chisel">2) How Chisel proves this is possible (and why PoS EVM L1s are not trust-minimized)</a>
+    <a href="#options">3) Options over monarchs: the “Digital Leviathan”</a>
+    <a href="#architecture">Architecture Overview</a>
+    <a href="#formats">MacDougall (Unspendable) Addressing</a>
+    <a href="#flows">Reference Flows</a>
+    <a href="#threats">Threat Model &amp; Limitations</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#license">License &amp; Links</a>
+  </section>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <p>
+      Today’s social platforms are centralized ad markets with editorial power. They must operate this way in order to offer the 
+      free and convenient services that we have grown accustomed to. But these are technology traps that we can
+      avoid.  We no longer need to relying on centralized corporations that  gate identity,
+      throttle reach, and monetize surveillance. If you want a different outcome, you must change the substrate:
+      put identity and data under their own programatic and decentralized control, store content on decentralized media, 
+      and make the “feed” a local program—not a centralized service.
+    </p>
+    <p>
+      Since Bitcoin solved the Byzantine Generals problem with proof-of-work, we have had a possible alternative digital
+      medium which we could manage ourselves. Crypto ledgers are not just arbitrary money systems, they are also arbitrary
+      data and communication systems. Large well-funded efforts in decentralization or Web3 generally fail because they 
+      introduce points of centralization which seem necessary. They either do this because of a failure of imagination or
+      a lack of true vision and sincerity.
+    </p>
+    <p>
+      We believe in the spirit of the common person. We believe in the power of collaboration. We believe in true competition,
+      true free enterprise, and the uncensored wisdom of exceptional individual over the madness of crowds or the 
+      pessimism of oligarchy. The Hobbesian Leviathan is born of fear, emits fear, and stifles innovation. This new "Digital Leviathan" 
+      posits that no single person has moral authority over any other. By creating a medium of communication based on 
+      individuals burning tiny bits of money into words, we avoid the technology traps of Web2. 
+    </p>
+    <p>
+     This white paper does not speculate about the future, but instead points out what has always been possible. The innovations of
+     Chisel, Web3, and this Digital Leviathan show how Web3 can be easier and more accessible, but the substrate can not be 
+     destroyed or unmade without also destroying all proof-of-work blockchain ledgers (cryptocurrencies). Upon realizing that
+     this is neither a joke nor a projection, most people become somewhat fearful. But I would ask one question: "When I first realized
+     what this system confirms, should I have told anyone at all?" Most people seem happy that I have explained this to them, but
+     then come to believe that this information should be kept from "those people". Even when I talk to those very "others", they 
+     make the same observation. But as I have decide to share this information with all, these arguments become moot. We must believe
+     that goodness will win the day, otherwise we are all lost.
+    </p>
+    <p>
+      <strong>Chisel</strong> is a minimal toolchain that etches arbitrary images, text, and URL links onto public blockchain ledgers.
+      It is technically a series of "hacks" which disregard the wishes of the creators of such network. Its central premise is that the user is
+      presenting the blockchain "miners" with a transaction and a small fee. Current blockchain wallets limit what is included in these 
+      transactions AND require special software. But bitcoin was never initially about a set of expert curators. Any company, any committee,
+      or any set of gatekeepers can be compromised. In the "Byzantine Generals" example, the message must go through. For it to be stopped 
+      would be considered a "fault". Therefore, cryptocurrency is built of "Byzantine Fault Tolerance". We simply reframe the message payload
+      to be more than simply a transfer of money.
+      </p>
+      <p>
+      Chisel can be run from different sources. You can even download it to your own computer. If you want to run your own Digibyte server, 
+      then you have another level of personal control of your ability to read and write to Web3. It may seem like this is all too difficult
+      to COMPETE with things like Facebook or Youtube. Web3 is not about competition, but rather collaboration. This simply writes data to
+      one of many immutable networks. This technology can easily be adapted to work with other bitcoin-like network.
+    </p>
+  </section>
+
+  <section id="why-control">
+    <h2>1) Why we need control of our own social media experiences</h2>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <h3>Centralized platforms: failure modes</h3>
+        <ul>
+          <li><strong>Identity lock-in:</strong> accounts and graphs live under ToS, not keys.</li>
+          <li><strong>Editorial opacity:</strong> feeds are pay-to-play, policy-driven, or “trust &amp; safety” opaque.</li>
+          <li><strong>Data custody:</strong> uploads are hostage to rate limits, API changes, and bans.</li>
+          <li><strong>Incentive mismatch:</strong> engagement extraction beats user agency.</li>
+          <li><strong>API rug pulls:</strong> developer access changes kill third-party clients.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Control requirements</h3>
+        <ul>
+          <li><strong>Keyed identity:</strong> self-sovereign IDs, no admin reset.</li>
+          <li><strong>Permanent addressability:</strong> content address (IPFS) or ledger roots.</li>
+          <li><strong>Local-first clients:</strong> the feed is computed locally from public data.</li>
+          <li><strong>Auditable write-path:</strong> posts/follows have verifiable provenance.</li>
+          <li><strong>Forkability:</strong> anyone can index and present the same corpus differently.</li>
+          <li><strong>Forkability (more)</strong> Chisel can run from github and a literal fork can also run from github.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      The minimal guarantee: if your key signed it and the network finalized it, you can always
+      <em>retrieve</em> it and <em>render</em> it on your terms. If you use an onchain index, anyone else can find it.
+    </div>
+  </section>
+
+  <section id="how-chisel">
+    <h2>2) How Chisel demonstrates feasibility (and why earlier PoS EVM variants aren’t trust-minimized)</h2>
+
+    <h3>What Chisel is</h3>
+    <ul>
+      <li><strong>On Digibyte (UTXO, PoW):</strong> a vanilla transaction template builder that “etches”
+        statements into burn outputs and the <code>OP_RETURN</code> field. Human-readable <em>MacDougall</em> encodings
+        act as semantic tags (subject, person, transport, etc.) is part of what makes it readable/findable.</li>
+      <li><strong>Much of this seems easier on EVM:</strong> which uses <code>tx.data</code> or dumb contracts to embed data.
+        Because Chisel support BIP32/38/39/44 keys, it could easily be extended into EVM and beyond, if desired. Having said that, 
+        proof-of-stake ledgers appear to be curated/censored. </li>
+      <li><strong>Client side:</strong>Vanilla JS act as a local explorer and feed composer.
+        No external API requirements; No NodeJS/React/Cloud dependencies; IPFS hosting is supported.</li>
+    </ul>
+
+    <div class="panel">
+      <h3>Why UTXO + PoW for source of truth</h3>
+      <ul>
+        <li><strong>Finality via physics:</strong> reorg cost grows with hashrate and time; capture requires
+            ongoing external energy.</li>
+        <li><strong>Granular provenance:</strong> each inscription is an atomic, independently verifiable spend.</li>
+        <li><strong>Simplicity:</strong> fewer footguns than complex, upgradeable VM contracts.</li>
+      </ul>
+    </div>
+
+    <h3>Why earlier PoS EVM variants are insufficient as a root of trust</h3>
+    <ul>
+      <li><strong>Social finality &amp; governance capture:</strong> many PoS chains rely on governance to resolve
+          long-range reorganizations and validator failures. This is de facto human arbitration.</li>
+      <li><strong>Capital centralization:</strong> stake tends to concentrate; the set of entities that can
+          censor or reorder is small.</li>
+      <li><strong>Upgrade latitude:</strong> upgradable contracts and client coordination can rewrite application
+          realities quickly. Good for shipping, bad for immutable attestations.</li>
+      <li><strong>Sequencer bottlenecks (L2s):</strong> single or few sequencers introduce chokepoints even when
+          data availability is on-chain.</li>
+    </ul>
+
+    <p class="muted">
+      Use PoS EVM chains for reach and interoperability. Use UTXO PoW for anchoring speech and identity claims
+      you cannot afford to have socially reversed.
+    </p>
+  </section>
+
+  <section id="options">
+    <h2>3) Options over monarchs: the Digital Leviathan</h2>
+    <p>
+      Hobbes’ Leviathan concentrates power to prevent chaos. Today’s “Monarchs” are platform operators:
+      unitary actors that moderate, rank, and monetize speech. The <strong>Digital Leviathan</strong> functionally presented here
+      redistributes power into protocols: speech is a public good (addressed, signed, archived), while selection
+      and ranking are market-driven local computations that anyone can fork.
+    </p>
+    <div class="callout">
+      <strong>The question:</strong> “If you know a different way is possible, should you share it or hide it?”
+      <br/>Answer: publish the method. Let communities choose their clients and ranking functions.
+    </div>
+  </section>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <thead>
+    <tr>
+      <th>REAL LEVIATHAN</th>
+      <th>DIGITAL LEVIATHAN</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>COERCION</strong><br>- Army, police<br>- Secret police<br>- Legal enforcement</td>
+      <td><strong>COERCION</strong><br>- Public disclosure / informational leverage<br>- Strategic transparency<br>- Programmable enforcement</td>
+    </tr>
+    <tr>
+      <td><strong>COORDINATION</strong><br>- Councils, ministers<br>- Administration<br>- Policy implementation</td>
+      <td><strong>COORDINATION</strong><br>- Smart contracts<br>- Multi-party actions<br>- Network facilitation</td>
+    </tr>
+    <tr>
+      <td><strong>LEGITIMACY</strong><br>- Charisma, tradition<br>- Law, decree<br>- Social acceptance</td>
+      <td><strong>LEGITIMACY</strong><br>- Immutable ledger<br>- Cryptographic certainty<br>- Transparent actions</td>
+    </tr>
+    <tr>
+      <td><strong>RESOURCE CONTROL</strong><br>- Taxes, subsidies<br>- Monopolies<br>- Infrastructure</td>
+      <td><strong>RESOURCE CONTROL</strong><br>- On-chain funding<br>- Token allocation<br>- Programmed incentives</td>
+    </tr>
+    <tr>
+      <td><strong>MORAL / ETHICAL CHECKS</strong><br>- Human judgment<br>- Post facto accountability</td>
+      <td><strong>MORAL / ETHICAL CHECKS</strong><br>- Fully amoral<br>- No internal constraint</td>
+    </tr>
+  </tbody>
+</table>
+
+
+  <section id="architecture">
+    <h2>Architecture Overview</h2>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <h3>Write path</h3>
+        <ol>
+          <li>User composes a statement (post, follow, label, pointer) locally.</li>
+          <li>Chisel encodes a <em>MacDougall</em> tag into an unspendable address and/or <code>OP_RETURN</code>.</li>
+          <li>Transaction is broadcast to Digibyte; optional mirror to Polygon via <code>tx.data</code>.</li>
+          <li>If content is large, payload is stored on IPFS; the ledger carries the CID + metadata.</li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h3>Read path</h3>
+        <ol>
+          <li>Local indexer scans addresses / scripts matching MacDougall patterns.</li>
+          <li>Client fetches CIDs from IPFS, verifies signatures and checksums.</li>
+          <li>User-defined ranking composes the “feed” (deterministic from public inputs).</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Data model (minimal)</h3>
+      <pre>{
+  "author": "pubkey-hash-or-address",
+  "kind": "post|follow|label|pointer",
+  "ts":  "unix-epoch-ms",
+  "cid": "ipfs-cid-or-null",
+  "mac": "MacDougall-line(s)",
+  "sig": "detached-sig-over(canonical-json)"
+}</pre>
+      <p class="muted">All fields are derivable or verifiable from on-chain data + IPFS content. No server trust.</p>
+    </div>
+  </section>
+
+  <section id="formats">
+    <h2>MacDougall (Unspendable) Addressing</h2>
+    <p>
+      MacDougall encodings create obviously unspendable, human-readable addresses that double as semantic labels.
+      These get permanently etched on-ledger and are legible without custom software. This convention predates
+      the Chisel project. In order to send to more than one crypto address (which is required for Chisel), you
+      would traditionally need special skills and software, such as this Digibyte Core Server:
+    </p>
+    <img width=80% src="dgbCore.png"></img>
+    <p>
+    Noticie that even though you are technically looking at "fake" crypto addresses, you are still able to read them.
+    Each of these gets indexed into standard block explorers or can be searched with an API. This begins to give
+    you a searchability and a way for people to broadcast.
+    </p>h
+    <p>
+    With my server, I could also subscribe to and watch for common readable patterns. This convention is called "MacDougall"
+    and is both readable and indexable.
+    </p>
+    <img width=80% src="dgbYouTube.png"></img>
+    <div class="panel">
+      <h3>Prefix rules (abridged)</h3>
+      <ul>
+        <li><code>D</code> = fixed first letter</li>
+        <li><code>A|B|C|D|E</code> = modifier (2nd)</li>
+        <li><code>x</code> as 3rd letter = space</li>
+        <li><code>DAx</code> = person</li>
+        <li><code>DBx</code> = transport (e.g., <code>DBxYoUTUBE</code>)</li>
+        <li><code>DCx</code> = subject</li>
+        <li><code>DDx</code>/<code>DEx</code> = an IPFS address will follow (split in half)</li>
+        <li>If 2nd is <code>D</code> and 3rd != <code>x</code>, interpret as free verse/text</li>
+      </ul>
+      <p class="muted">
+        Middle section = language. Capitals are literal, with small <code>o</code> and <code>i</code> included.
+        <code>x</code> = space, <code>y</code> = dash, <code>z</code> = padding. Checksum closes the address.
+      </p>
+    </div>
+
+    <pre>Example:
+Input:  DCx domo arigato
+Output: DCxDoMoxARiGATozzzzzzzzzzzzzVwQnWq  (human-legible + checksum)</pre>
+
+    <p>
+      These tags annotate transactions with durable, readable semantics—no ABI or indexer monopoly needed. Notice
+      that if someone knows these addresses or "anchors" that they can query the ledger remotely. In this example,
+      you can search on a 3rd party website. Without any formatting, you can read words and see URLs.
+    </p>
+   <img width=80% src="dgbEyes.png"></img>
+  </section>
+  <p>
+  But now, Chisel allows this same freedom to read and write WITHOUT installing the nerd-centric Digibyte Core server. 
+  This greatly reduces the cost of entry. It also adds new graphical protocols that will allow for simple images. Note
+  that readability and viewability is greatly improved.
+  </p>
+  <img width=80% src="lukeLuck.png"></img>
+  <section id="flows">
+    <h2>Reference Flows</h2>
+    <div class="grid grid-2">
+      <div class="panel">
+        <h3>Post</h3>
+        <ol>
+          <li>Pin media to IPFS → receive <code>CID</code>.</li>
+          <li>Construct MacDougall subject line (<code>DCx</code> …), add pointer (<code>DDx/DEx</code> for CID).</li>
+          <li>Build UTXO tx:
+            <ul>
+              <li>1+ burn outputs with MacDougall addresses</li>
+              <li>Optional <code>OP_RETURN</code> with compact JSON</li>
+              <li>Change back to wallet</li>
+            </ul>
+          </li>
+          <li>Sign and broadcast. Optional EVM mirror with the same canonical JSON in <code>tx.data</code>.</li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h3>Follow / Unfollow</h3>
+        <ol>
+          <li>Emit a labeled statement (e.g., <code>DAxALiCEzzz</code> + verb) as a burn output.</li>
+          <li>Clients recompute graph; no central API.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Moderation &amp; Ranking</h3>
+      <ul>
+        <li><strong>Local lists:</strong> block/allow lists are user or community-maintained artifacts.</li>
+        <li><strong>Deterministic feeds:</strong> given the same inputs, two clients can reproduce the same timeline.</li>
+        <li><strong>Pluralism:</strong> different clients = different feeds; no single editorial monarch.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="threats">
+    <h2>Threat Model &amp; Limitations</h2>
+    <ul>
+      <li><strong>Spam:</strong> open write-paths invite junk. Mitigate with stake-to-say, rate budgets, or local filters.</li>
+      <li><strong>Metadata leakage:</strong> on-ledger signals are public; use batching, timing noise, or mixers if needed.</li>
+      <li><strong>PoS mirrors:</strong> treat EVM mirrors as convenience. Do not anchor invariants solely on PoS chains.</li>
+      <li><strong>Availability:</strong> ensure IPFS pinning redundancy; mirror critical media on multiple providers/self-hosted IPFS.</li>
+      <li><strong>Wallet UX:</strong> non-custodial keys are user burden. Provide safe defaults and backups.</li>
+    </ul>
+  </section>
+
+  <section id="roadmap">
+    <h2>Roadmap (indicative)</h2>
+    <ol>
+      <li><strong>v0:</strong> Post/Follow primitives on Digibyte + IPFS; local indexer; deterministic feed.</li>
+      <li><strong>v1:</strong> EVM mirror adapters (Polygon) + import/export bridges; watch-only mode.</li>
+      <li><strong>v2:</strong> Community ranking modules; reputation attestations; snapshotable blocklists.</li>
+      <li><strong>v3:</strong> Portable identity bundles; multi-device sync; formal spec for MacDougall grammar.</li>
+    </ol>
+  </section>
+
+  <section id="options-closing">
+    <h2>Closing</h2>
+    <p>
+      Chisel shows that social media can be a local computation over public data, not a remote service with privileges.
+      This interface is still too difficult for the general public, but it does function as a proof-of-concept. It can
+      run directly from github, all of its code can be read, understood, and cloned. Some of you which made it this far
+      will not understand the details of Chisel, but will see the potential. Some of you may understand how it works and
+      what it provides-- but may nevertheless dislike the idea of Chisel. For you, I just ask that you give it a second
+      thought. And of course there is the happy intersection of both groups that value true freedom and also understand 
+      Web3 technology. You are the cohort that can best push decentralization forward.
+    </p>
+    <p class="callout">
+      Don’t ask permission to speak. Publish. Verify. Render locally. Compete on ranking—not custody.
+    </p>
+  </section>
+
+  <section id="license">
+    <h2>License &amp; Links</h2>
+    <ul>
+      <li><a href="https://github.com/johnrigler/unspendable" target="_blank" rel="noopener">Unspendable / MacDougall encoder (GitHub)</a></li>
+      <li><a href="https://ipfs.tech" target="_blank" rel="noopener">IPFS</a> — content addressability layer</li>
+      <li><a href="https://www.digibyte.org/en-us/#downloads" target="_blank" rel="noopener">Digibyte Core</a> — UTXO node</li>
+    </ul>
+    <p class="muted">This document is provided “as is.” Use at your own risk. No warranties.</p>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div>© <span id="yr"></span> Chisel • IPFS-ready • Local-first</div>
+    </div>
+  </footer>
+</main>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
+
