@@ -47,35 +47,57 @@ chainz.query =  () => fetch(`https://chainz.cryptoid.info/explorer/api.dws?q=sum
 
 fetch("https://chainz.cryptoid.info/explorer/api.dws?q=summary").then( x => x.json())
 
-chisel.nodeProxy.fileLoad = function fileLoad( name ) {
-
-  fetch("http://localhost:7788/load", {
-        method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: name })
-  }).then( x => x.json())
-
-}
-
-chisel.nodeProxy.fileSave = function fileSave( t, name ) {
-  fetch('http://localhost:7788/save', {
+chisel.nodeProxy.fileLoad = async function fileLoad(name) {
+  return await fetch('http://localhost:7799/load', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      filename: name,
-      data: t 
+    body: JSON.stringify({ filename: name })
+  }).then( x => x.json() )
+};
+
+chisel.nodeProxy.fileSave = async function fileSave(data,name)
+    {
+    await fetch("http://localhost:7799/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ filename: name, data: data })
     })
-  })
-  .then(r => r.json())
-  .then(console.log)
-  .catch(console.error);
 }
 
-chisel.nodeProxy.fileList = function fileList() {
+chisel.nodeProxy.fileList = async function fileList(dirname = "") {
 
-fetch("http://localhost:7788/list").then( x => x.json())
+return await fetch("http://localhost:7799/list", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ dirname: dirname })
+}).then(r => r.json())
 
 }
+
+chisel.nodeProxy.fileDelete = async function fileDelete(file) {
+  await fetch("http://localhost:7799/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ filename: file })
+  }).then(r => r.json());
+}
+
+chisel.nodeProxy.mkDir = async function mkDir(dir) {
+  await fetch("http://localhost:7799/mkdir", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dirname: dir })
+  }).then(r => r.json());
+}
+
+chisel.nodeProxy.rmDir = async function rmDir(dir) {
+  await fetch("http://localhost:7799/rmdir", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dirname: dir })
+  }).then(r => r.json());
+}
+
 
 chisel.drawCharTabletImage = function drawCharTabletImage(output, canvas, scale = 8) {
   if (!Array.isArray(output) || output.length === 0) return;
