@@ -18,8 +18,8 @@ async function loadAll(b57file = "b57.json") {
 
 loadAll();
 
-async function loadAddressData( address ) {
-    const url = `https://digiexplorer.info/api/address/${address}/txs`;
+async function loadAddressData( address, offset=0 ) {
+    const url = `https://digiexplorer.info/api/address/${address}/txs?offset=${offset}`;
     const container = document.getElementById("section-address"); // replace with actual div id
     container.innerHTML = "Loading...";
 
@@ -44,7 +44,9 @@ async function loadAddressData( address ) {
             return bal;
         }, 0);
 
-        let html = `<div>Balance: ${balance / 1e8} DGB</div>`;
+        let html = `<div id="addressWidget"></div>
+                    <pre id="results"></pre>
+                    <div>Balance: ${balance / 1e8} DGB</div>`;
         html += `<table border="1" cellspacing="0" cellpadding="4">
                     <tr>
                         <th></th>
@@ -60,12 +62,14 @@ async function loadAddressData( address ) {
             // Find OP_RETURN in vout
             let opReturnAscii = "";
             tx.vout.forEach(v => {
-                if (v.scriptpubkey_asm && v.scriptpubkey_asm.startsWith("OP_RETURN")) {
-                    const hex = v.scriptpubkey_asm.split(" ")[1] || "";
+                if (v.scriptpubkey_type == "op_return") {
+                
+                    const hex = v.scriptpubkey_asm.split(" ")[2] || "";
                     opReturnAscii = hexToAscii(hex);
+               //     console.log(hex);
                 }
             });
-
+    
             html += `<tr>
 
                         <td>
@@ -98,7 +102,32 @@ async function loadAddressData( address ) {
         });
 
         html += `</table>`;
-        container.innerHTML = html;
+        container.innerHTML = `<h2>${address}</h2>` + html + "[more]";
+
+
+new AddressCombo("#addressWidget", {
+    addresses: [
+      "DDDDDDDDDDDDDDDDDDDDDDDDDDDD5SVJPi",
+      "DHooQkHNjos8X15qczAsA3s5cJEMGksdvj",
+      "DBxYoUTUBEvCoMzzzzzzzzzzzzzzZ31xMU",
+      "DBxYoUTUBEhCoMzzzzzzzzzzzzzzZkL3DC",
+      "DBxVoCARoovCoMzzzzzzzzzzzzzzXL8bKa",
+      "DBxVoCARoohCoMzzzzzzzzzzzzzzaAvVjE",
+      "DATUGu64TCU4qD7vDC5hUYmyfRmEJcGM3J",
+      "D6yKrBS6rrUD2Sp2G5TMPdTUY4pkMHGA6T",
+      "DDbCsz8VeztP7AwmrWgNADAV58mWpDjqbw",
+      "dgb1q4rdplx7k92y4llzq6v6qf9mgpr5zey2js49xzs",
+      "DThvAmDxnSya4qnMzmmV2fCK8uCcYrHGFM",
+      "DBx4CHANzzzzzzzzzzzzzzzzzzzzb1m2Ef",
+      "DAzrL96Z61gP8FtXf1tyw5PteJfQs3fEb1",
+      "DAxJoHNxRiGLERzzzzzzzzzzzzzzVKx51Q"
+    ],
+    onSearch: function(addr) {
+        loadAddressData(addr)
+      document.getElementById("results").innerHTML =
+        "<h1>" + addr + "</h1>";
+    }
+  });
 
 canvi.forEach( x =>  {
  canvas = document.getElementById(`canvas-${x}`)

@@ -48,8 +48,9 @@ mainMenu.items.import.html = `
   </div>
 
   <button id="reloadButton" onclick="reloadImage()">Reload</button>
+<table><tr><td>
   <br><canvas id="canvaz"></canvas>
-  <pre id="output"></pre>
+  <td><pre id="output"></pre></tr></table>
 </div>
 `;
 
