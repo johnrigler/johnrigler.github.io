@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Base58 Tablet Doodler</title>
+  <script src="tablet.js"></script>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: monospace;
+      padding: 20px;
+    }
+    #tablet {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .row {
+      display: flex;
+      gap: 0;
+    }
+    .pixel {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+    #picker {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 2px;
+      margin-top: 10px;
+      max-width: 200px;
+    }
+    .swatch {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      border: 1px solid #444;
+    }
+    .selected {
+      border: 2px solid white;
+    }
+    #output {
+      margin-top: 20px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+<h2>🪨 Base58 Tablet Doodler</h2>
+<button onclick="addLine()">Add Line</button>
+<button onclick="saveTablet()">Save</button>
+<button id="load-tablet">Load</button>
+<div id="picker"></div>
+<hr>
+<div id="tablet"></div>
+<pre id="output"></pre>
+
+<script>
+let currentChar = '1';
+let isMouseDown = false;
+let selectedSwatch = null;
+const tabletEl = document.getElementById('tablet');
+const pickerEl = document.getElementById('picker');
+const outputEl = document.getElementById('output');
+const loadBtn = document.getElementById('load-tablet');
+
+async function init() {
+    await Tablet.loadColors("b57.json");
+    buildPicker();
+    updateSelectedSwatch();
+    for (let i = 0; i < 6; i++) addLine();
+}
+
+function buildPicker(uniqueArray = null) {
+    pickerEl.innerHTML = '';
+    const chars = uniqueArray
+        ? uniqueArray.map(([ch]) => ch)
+        : Object.keys(Tablet.colors);
+
+    for (const char of chars) {
+        const col = Tablet.colors[char];
+        if (!col) continue;
+        const swatch = document.createElement('div');
+        swatch.className = 'swatch';
+        swatch.style.backgroundColor = `rgb(${col.r},${col.g},${col.b})`;
+        swatch.dataset.char = char;
+        swatch.onclick = () => {
+            currentChar = char;
+            updateSelectedSwatch();
+        };
+        pickerEl.appendChild(swatch);
+    }
+}
+
+function updateSelectedSwatch() {
+    for (const sw of pickerEl.children) {
+        sw.classList.toggle('selected', sw.dataset.char === currentChar);
+    }
+}
+
+function paintCell(cell) {
+    cell.dataset.char = currentChar;
+    const col = Tablet.colors[currentChar];
+    cell.style.backgroundColor = col ? `rgb(${col.r},${col.g},${col.b})` : 'black';
+}
+
+function addLine(content = null) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const lineChars = content ? content.split('') : Array(26).fill(currentChar);
+
+    for (const char of lineChars) {
+        const div = document.createElement('div');
+        div.className = 'pixel';
+        div.dataset.char = char;
+        const col = Tablet.colors[char];
+        div.style.backgroundColor = col ? `rgb(${col.r},${col.g},${col.b})` : 'black';
+        div.onmousedown = () => paintCell(div);
+        div.onmouseover = () => { if (isMouseDown) paintCell(div); };
+        row.appendChild(div);
+    }
+    tabletEl.appendChild(row);
+}
+
+function saveTablet() {
+    const lines = [];
+    for (const row of tabletEl.children) {
+        const line = Array.from(row.children).map(c => c.dataset.char).join('');
+        lines.push(line);
+    }
+    Tablet.setRows(lines);
+    outputEl.textContent = Tablet.toText();
+}
+
+loadBtn.onclick = () => {
+    const input = Tablet.createUploadInput((rows) => {
+        tabletEl.innerHTML = '';
+        for (const line of rows) addLine(line);
+    });
+    input.click();
+};
+
+// Mouse state
+document.body.onmousedown = () => isMouseDown = true;
+document.body.onmouseup = () => isMouseDown = false;
+
+init();
+</script>
+</body>
+</html>
