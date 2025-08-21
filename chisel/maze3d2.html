@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tablet Maze 3D</title>
+  <style>
+    body { margin:0; overflow:hidden; background:black; }
+    canvas { display:block; }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="npc.js"></script>
+<script src="chisel.js"></script>
+<script>
+/* ---- Example Tablet (replace with your real Tablet.data) ---- */
+/*
+const Tablet = {
+  data: [
+ "NNNNMNNNMNNNNNMNNNNMNNNNNN","NMNANNMNNNMNMNNNNMNNNMMNAN","MNNANMAAMNNMNMMMNNMNMNNNAN",
+ "MNMANNANNMNNNNNNMWWMNNAMMN","NNNNMNMMNNMNMMNMNMNNMNMNNN","NANMNNNNNANMMNNMNNNMNNANMN",
+ "NMNMNMNMMNWWNMNNANMANMNMNN","NAMNNMMNNNAMNWMNAWMNNMNMNA","NNNNMWNNMMNNMWMNAWMWANNNNN",
+ "NMMMNWMANNMNNNMNANAWNAMMMN","NNNNMNMNNANNMANNMNNMNMNNNM","NMNMNNMMNMNMANNMNNANNNNMNN",
+ "WWMNNMNMWWNMNNMMMNWMNMMNMN","NMNNMNNNNMMNNMMANAWNMNNNNN","ANNMNNMMMNNNMNMNNNANMANMMN",
+ "NNMMNMMNNNAAMNNNMNMNNMNMNN","MNANNANNAMNNNMNMNNNANNNANM","NNNMNNNMNNNMNMWWMNMMMMMNNM",
+ "NANNANANNMAWWNANMNNMNNNNMN","NNMNNMNMNANAANANMNANNMMMWN","MNNANNNMNNNNMNNNMMNNMNNNWA",
+ "MNMNMMNMNMMNNAMNNMNMMNMMNN","NNMNNANNMNNMNNNMMNNNNNANMN","NMNNMMMNNMNNNMNNNMMMNMMNNN",
+ "NMNMNMNANNMAMMNMNNNMMNNNMM","NNNNNNNNMNNNNNMNNMNNNNANNN"
+  ]
+};
+*/
+//Tablet.data = await chisel.nodeProxy.fileLoad("map.json")
+
+
+
+
+/* ---- Setup Three.js ---- */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Lighting
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.0));
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+dirLight.position.set(5,10,7.5);
+scene.add(dirLight);
+
+// Materials
+const materials = {
+  "M": new THREE.MeshPhongMaterial({ color: 0x777777 }), // wall
+  "N": new THREE.MeshPhongMaterial({ color: 0x228B22 }), // grass
+  "A": new THREE.MeshPhongMaterial({ color: 0x8B4513 }), // dirt
+  "W": new THREE.MeshPhongMaterial({ color: 0x1E90FF })  // water
+};
+
+// Geometries
+const wallGeo = new THREE.BoxGeometry(1,0.5,1);  // shorter wall (0.5 tall)
+const floorGeo = new THREE.PlaneGeometry(1,1);
+
+// Build maze
+// const maze = Tablet.data;
+
+Tablet = []
+
+chisel.nodeProxy.fileLoad("map.json").then ( x => 
+
+{ 
+
+  Tablet = x;
+  const maze = Tablet.data;
+
+  window.NPCs.push(new NPC(Tablet.data, scene, 3, 3, 0xff0000));
+  window.NPCs.push(new NPC(Tablet.data, scene, 10, 5, 0x00ff00));
+  window.NPCs.push(new NPC(Tablet.data, scene, 20, 10, 0xbbbb00));
+  window.NPCs.push(new NPC(Tablet.data, scene, 7, 8, 0x0012dd));
+
+
+for (let z = 0; z < maze.length; z++) {
+  const row = maze[z];
+  for (let x = 0; x < row.length; x++) {
+    const ch = row[x];
+    if (ch === "M") {
+      const wall = new THREE.Mesh(wallGeo, materials["M"]);
+      wall.position.set(x, 0.25, z); // half height = 0.25
+      scene.add(wall);
+    } else {
+      // floor tile
+      const floor = new THREE.Mesh(floorGeo, materials[ch] || materials["N"]);
+      floor.rotation.x = -Math.PI/2;
+      floor.position.set(x, 0, z);
+      scene.add(floor);
+    }
+  }
+ }
+
+// Camera/player state
+let player = {
+  x: 2,
+  z: maze.length-2,
+  rot: 0 // radians, facing north
+};
+camera.position.set(player.x, 0.6, player.z);
+camera.rotation.order = "YXZ";
+
+// Movement
+const keys = {};
+
+window.addEventListener("keydown", e => { keys[e.key] = true; });
+window.addEventListener("keyup", e => { keys[e.key] = false; });
+
+/*
+  window.NPCs.push(new NPC(Tablet.data, scene, 3, 3, 0xff0000));
+  window.NPCs.push(new NPC(Tablet.data, scene, 10, 5, 0x00ff00));
+  window.NPCs.push(new NPC(Tablet.data, scene, 20, 10, 0xbbbb00));
+  window.NPCs.push(new NPC(Tablet.data, scene, 7, 8, 0x0012dd));
+*/
+
+
+function isBlocked(x, z) {
+  const gridX = Math.floor(x + 0.5);
+  const gridZ = Math.floor(z + 0.5);
+  const row = maze[gridZ];
+  if (!row) return true;
+  const ch = row[gridX];
+  return !ch || ch === "M"; // block only walls
+}
+
+// Game loop
+function animate() {
+  requestAnimationFrame(animate);
+
+  // turning
+  if (keys["a"]) player.rot += 0.04;
+  if (keys["d"]) player.rot -= 0.04;
+
+  // movement (w=forward, s=backward)
+  let dx = 0, dz = 0;
+  if (keys["s"]) {
+    dx += Math.sin(player.rot) * 0.05;
+    dz += Math.cos(player.rot) * 0.05;
+  }
+  if (keys["w"]) {
+    dx -= Math.sin(player.rot) * 0.05;
+    dz -= Math.cos(player.rot) * 0.05;
+  }
+
+// strafe left/right
+if (keys["A"]) {  // capital A = slide left
+  dx += Math.sin(player.rot - Math.PI/2)*0.05;
+  dz += Math.cos(player.rot - Math.PI/2)*0.05;
+}
+if (keys["D"]) {  // capital D = slide right
+  dx += Math.sin(player.rot + Math.PI/2)*0.05;
+  dz += Math.cos(player.rot + Math.PI/2)*0.05;
+}
+
+  const newX = player.x + dx;
+  const newZ = player.z + dz;
+  if (!isBlocked(newX, newZ)) {
+    player.x = newX;
+    player.z = newZ;
+  }
+
+  camera.position.set(player.x, 0.6, player.z);
+  camera.rotation.y = player.rot;
+
+  stepNPCs();
+
+  renderer.render(scene, camera);
+}
+animate();
+
+})
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
+
