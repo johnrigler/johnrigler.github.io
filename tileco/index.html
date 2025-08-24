@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Ceramic Tiles Co.</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="hotdog"></div>
+  <div id="app"></div>
+</body>
+<script src="../lib/menu.js"></script>
+<script>
+const BUILD = 1;
+function loadScript(url) {
+  if (BUILD) url += "?" + Math.random();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = url;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+Promise.all([
+  loadScript("menus/main.js")
+    .then(() => Promise.all(
+      ["welcome","products","about","contact"].map(id =>
+        loadScript(`menus/${id}.js`)
+      )
+    ))
+]).then(() => {
+  buildInterface(mainMenu);
+}).catch(err => console.error("Menu load failed:", err));
+
+function showPage(id, event) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".btn").forEach(p => p.classList.remove("active"));
+  document.querySelector(`#section-${id}`).classList.add("active");
+  if (event && event.target) event.target.classList.add("active");
+}
+
+function buildInterface(menu) {
+  const root = document.getElementById("app");
+  root.innerHTML = "";
+  const header = document.createElement("header");
+  header.innerHTML = "<h2>Ceramic Tiles Co.</h2>";
+  const main = document.createElement("div");
+  root.appendChild(header);
+
+  menu.order.forEach(id => {
+    const choice = menu.tools.get(id);
+    const section = document.createElement("section");
+    section.id = "section-" + id;
+    section.className = "page";
+    section.innerHTML = choice.html;
+    main.appendChild(section);
+
+    const btn = document.createElement("button");
+    btn.textContent = choice.label;
+    btn.id = "btn-" + id;
+    btn.className = "btn";
+    btn.onclick = e => showPage(id, e);
+    root.appendChild(btn);
+  });
+
+  root.appendChild(main);
+  showPage("welcome");
+}
+</script>
+</html>
