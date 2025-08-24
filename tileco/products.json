@@ -3,8 +3,8 @@
     "name": "Classic White and Cobol Tile",
     "description": "Timeless glossy white wall tile with classic accents.",
     "price": 2.49,
-    "image": "images/white-blue-bath.webp",
-    "tags": ["bathroom","kitchen"]
+    "image": "images/bathroom.png",
+    "tags": ["bathroom"]
   },
   {
     "name": "Glossy Kitchen Tiles",
