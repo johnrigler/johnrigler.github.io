@@ -2,73 +2,104 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ceramic Tiles Co.</title>
+
+  <!-- Theme CSS -->
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- Menu engine -->
+  <script src="../lib/menu.js"></script>
+
+  <!-- EmailJS (needed for contact form) -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ if (window.emailjs) emailjs.init('YOUR_PUBLIC_KEY'); });</script>
 </head>
 <body>
-  <div id="hotdog"></div>
-  <div id="app"></div>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="#" onclick="document.getElementById('btn-welcome').click()">Ceramic Tiles Co.</a>
+      <nav class="main-nav" id="main-nav"></nav>
+    </div>
+  </header>
+
+  <main id="app" class="container"></main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h4>Contact</h4>
+        <p>Email: info@example.com<br>Phone: (000) 000-0000</p>
+      </div>
+      <div>
+        <h4>Opening Times</h4>
+        <p>Mon–Fri 7:30–17:30<br>Sat 8:00–17:30</p>
+      </div>
+      <div>
+        <h4>Where We Are</h4>
+        <p>123 Tile Park Business Centre<br>Your City, ZIP</p>
+      </div>
+    </div>
+    <div class="footer-legal">© 2025 Ceramic Tiles Co. All rights reserved.</div>
+  </footer>
+
+  <script>
+    const BUILD = 1;
+    const loadScript = (url) => new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = url + (BUILD ? `?${Math.random()}` : '');
+      s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    });
+
+    Promise.all([
+      loadScript("menus/main.js")
+        .then(() => Promise.all(["welcome","products","about","contact"].map(id => loadScript(`menus/${id}.js`))))
+    ]).then(() => {
+      buildInterface(mainMenu);
+    }).catch(err => console.error('Failed to load menu scripts:', err));
+
+    function showPage(id, e) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`section-${id}`).classList.add('active');
+      if (e && e.target) e.target.classList.add('active');
+      // update selected state in header nav
+      document.querySelectorAll('.nav-link').forEach(a => a.classList.toggle('active', a.dataset.id === id));
+    }
+
+    function buildInterface(menu) {
+      const root = document.getElementById('app');
+      root.innerHTML = '';
+
+      // mount sections
+      const main = document.createElement('div');
+      main.className = 'pages';
+      menu.order.forEach(id => {
+        const choice = menu.tools.get(id);
+        const section = document.createElement('section');
+        section.id = `section-${id}`;
+        section.className = 'page';
+        section.innerHTML = choice.html;
+        main.appendChild(section);
+      });
+      root.appendChild(main);
+
+      // build header nav buttons
+      const nav = document.getElementById('main-nav');
+      nav.innerHTML = '';
+      menu.order.forEach(id => {
+        const choice = menu.tools.get(id);
+        const a = document.createElement('button');
+        a.className = 'nav-link btn';
+        a.textContent = choice.label;
+        a.dataset.id = id;
+        a.id = `btn-${id}`;
+        a.onclick = (e) => showPage(id, e);
+        nav.appendChild(a);
+      });
+
+      showPage('welcome');
+    }
+  </script>
 </body>
-<script src="../lib/menu.js"></script>
-<script>
-const BUILD = 1;
-function loadScript(url) {
-  if (BUILD) url += "?" + Math.random();
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = url;
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
-Promise.all([
-  loadScript("menus/main.js")
-    .then(() => Promise.all(
-      ["welcome","products","about","contact"].map(id =>
-        loadScript(`menus/${id}.js`)
-      )
-    ))
-]).then(() => {
-  buildInterface(mainMenu);
-}).catch(err => console.error("Menu load failed:", err));
-
-function showPage(id, event) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.querySelectorAll(".btn").forEach(p => p.classList.remove("active"));
-  document.querySelector(`#section-${id}`).classList.add("active");
-  if (event && event.target) event.target.classList.add("active");
-}
-
-function buildInterface(menu) {
-  const root = document.getElementById("app");
-  root.innerHTML = "";
-  const header = document.createElement("header");
-  header.innerHTML = "<h2>Ceramic Tiles Co.</h2>";
-  const main = document.createElement("div");
-  root.appendChild(header);
-
-  menu.order.forEach(id => {
-    const choice = menu.tools.get(id);
-    const section = document.createElement("section");
-    section.id = "section-" + id;
-    section.className = "page";
-    section.innerHTML = choice.html;
-    main.appendChild(section);
-
-    const btn = document.createElement("button");
-    btn.textContent = choice.label;
-    btn.id = "btn-" + id;
-    btn.className = "btn";
-    btn.onclick = e => showPage(id, e);
-    root.appendChild(btn);
-  });
-
-  root.appendChild(main);
-  showPage("welcome");
-}
-</script>
 </html>
