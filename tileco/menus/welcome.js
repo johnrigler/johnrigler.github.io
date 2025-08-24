@@ -19,14 +19,14 @@ mainMenu.items.welcome.html = `
   <h2>Popular Categories</h2>
   <div id="popular-cats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
     <a class="product-card" href="#" onclick="document.getElementById('btn-products').click()">
-      <div class="thumb"><img src="images/cat-bathroom.jpg" alt="Bathroom Tiles"></div>
+      <div class="thumb"><img src="images/cat-bathroom.png" alt="Bathroom Tiles"></div>
       <div class="meta">
         <h3>Bathroom Tiles</h3>
         <p>Clean lines, non-slip options.</p>
       </div>
     </a>
     <a class="product-card" href="#" onclick="document.getElementById('btn-products').click()">
-      <div class="thumb"><img src="images/cat-kitchen.jpg" alt="Kitchen Tiles"></div>
+      <div class="thumb"><img src="images/cat-kitchen.png" alt="Kitchen Tiles"></div>
       <div class="meta">
         <h3>Kitchen Tiles</h3>
         <p>Easy-care splashbacks & floors.</p>
