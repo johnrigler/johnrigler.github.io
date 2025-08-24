@@ -20,13 +20,41 @@ mainMenu.tools.add("contact", "Contact", `
     <p style="line-height:1.5; color:#555;">
       Have a question or need a custom order? We’d love to hear from you!
     </p>
-    <form style="display:flex; flex-direction:column; gap:0.5em; margin-top:1em;">
-      <input type="text" placeholder="Your Name" required style="padding:0.5em; border:1px solid #ccc; border-radius:6px;">
-      <input type="email" placeholder="Your Email" required style="padding:0.5em; border:1px solid #ccc; border-radius:6px;">
-      <textarea placeholder="Your Message" required style="padding:0.5em; border:1px solid #ccc; border-radius:6px;"></textarea>
-      <button type="submit" style="padding:0.6em; background:#0074D9; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
-        Send Message
-      </button>
+    <form id="contact-form" style="display:flex; flex-direction:column; gap:0.5em; margin-top:1em;">
+      <input type="text" name="from_name" placeholder="Your Name" required>
+      <input type="email" name="reply_to" placeholder="Your Email" required>
+      <textarea name="message" placeholder="Your Message" required></textarea>
+      <button type="submit">Send Message</button>
     </form>
+    <p id="form-status" style="margin-top:0.5em; font-weight:bold;"></p>
   </section>
 `);
+
+// EmailJS integration
+// Make sure to include this script in index.html:
+// <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.emailjs) {
+    emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your EmailJS public key
+  }
+
+  document.addEventListener("submit", function (e) {
+    if (e.target && e.target.id === "contact-form") {
+      e.preventDefault();
+      const form = e.target;
+      const status = document.getElementById("form-status");
+
+      emailjs.sendForm("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", form)
+        .then(() => {
+          status.textContent = "✅ Message sent successfully!";
+          status.style.color = "green";
+          form.reset();
+        }, (err) => {
+          status.textContent = "❌ Failed to send. Try again.";
+          status.style.color = "red";
+          console.error(err);
+        });
+    }
+  });
+});
