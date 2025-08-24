@@ -1,6 +1,6 @@
 mainMenu.items.about.html = `
 <section style="text-align:center; padding:2em; margin:auto; max-width:600px;">
-  <img src="images/tiles-hero.jpg" alt="Ceramic Tiles"
+  <img src="images/tiles-hero.png" alt="Ceramic Tiles"
        style="width:100%; max-height:300px; object-fit:cover; border-radius:12px;">
   <h1 style="margin-top:1em; font-size:1.8em;">Beautiful Ceramic Tiles</h1>
   <p style="font-size:1.1em; line-height:1.4; color:#555;">
