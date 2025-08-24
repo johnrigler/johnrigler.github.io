@@ -1,13 +1,7 @@
 const mainMenu = menuFactory();
 mainMenu.tools.add("welcome", "Home", "");
 mainMenu.tools.add("products", "Products", "");
-
-mainMenu.tools.add("about", "About Us", `
-  <section class="section">
-    <h2>About Ceramic Tiles Co.</h2>
-    <p class="muted">We curate high-quality ceramic & porcelain tiles for every style and budget.</p>
-  </section>
-`);
+mainMenu.tools.add("about", "About Us","");
 
 mainMenu.tools.add("contact", "Contact", `
   <section class="section">
