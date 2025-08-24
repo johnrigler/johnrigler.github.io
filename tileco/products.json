@@ -17,14 +17,14 @@
     "name": "Stylish Patio",
     "description": "Entertain in style.",
     "price": 3.75,
-    "image": "patio.png",
+    "image": "images/patio.png",
     "tags": ["patio"]
   },
   {
-    "name": "Mosaic Blue Tile",
-    "description": "Vibrant mosaic for feature walls.",
+    "name": "Bold Vibrant Colors",
+    "description": "Small colorful tiles.",
     "price": 3.75,
-    "image": "images/mosaic-blue.jpg",
+    "image": "images/tiles-hero.png",
     "tags": ["mosaic","bathroom"]
   },
   {
