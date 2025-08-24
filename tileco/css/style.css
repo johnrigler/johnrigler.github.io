@@ -69,7 +69,7 @@ body{
 .hero .cta:hover{background:var(--brand-2)}
 .hero-img{
   width:100%; height:100%; min-height:220px;
-  background:#ddd url('images/hero-tiles.jpg') center/cover no-repeat;
+  background:#ddd url('../images/hero-tiles.png') center/cover no-repeat;
   border-radius:var(--radius);
 }
 
