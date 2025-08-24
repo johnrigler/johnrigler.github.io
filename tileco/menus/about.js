@@ -1,4 +1,4 @@
-mainMenu.items.welcome.html = `
+mainMenu.items.about.html = `
 <section style="text-align:center; padding:2em; margin:auto; max-width:600px;">
   <img src="images/tiles-hero.jpg" alt="Ceramic Tiles"
        style="width:100%; max-height:300px; object-fit:cover; border-radius:12px;">
