@@ -7,11 +7,11 @@
     "tags": ["bathroom","kitchen"]
   },
   {
-    "name": "Marble Effect Tile",
-    "description": "Luxurious marble-look porcelain.",
+    "name": "Glossy Kitchen Tiles",
+    "description": "Luxurious classic indungence.",
     "price": 4.99,
-    "image": "images/marble-tile.jpg",
-    "tags": ["bathroom","flooring"]
+    "image": "images/kitchen.png",
+    "tags": ["kitchen"]
   },
   {
     "name": "Mosaic Blue Tile",
