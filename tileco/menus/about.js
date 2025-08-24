@@ -1,4 +1,4 @@
-mainMenu.items.about.html = `
+mainMenu.tools.add("about", "About Us",`
 <section class="section">
   <h2>About This Demo</h2>
   <p style="line-height:1.6; max-width:700px;">
@@ -24,4 +24,4 @@ mainMenu.items.about.html = `
       </div>
     </div>
 
-    <div class="product-card">
+    <div class="product-card">`);
