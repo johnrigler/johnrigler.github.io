@@ -21,7 +21,7 @@ document.addEventListener("submit", (e)=>{
   if (form && form.id === "contact-form") {
     e.preventDefault();
     const status = document.getElementById("form-status");
-    emailjs.sendForm("service_utdo1a4", "template_74c5uyl", form).then(()=>{
+    emailjs.sendForm("service_utdo1a4", "template_74c5uyl", form,"Qs5r_4cFED043ZmLZ").then(()=>{
       status.textContent = "Message sent. We’ll be in touch!";
       status.style.color = "green";
       form.reset();
