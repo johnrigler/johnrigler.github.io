@@ -1,20 +1,30 @@
 [
   {
     "name": "Classic White Tile",
-    "description": "Simple, clean, and timeless ceramic tile.",
+    "description": "Timeless glossy white wall tile.",
     "price": 2.49,
-    "image": "images/white-tile.jpg"
+    "image": "images/white-tile.jpg",
+    "tags": ["bathroom","kitchen"]
   },
   {
     "name": "Marble Effect Tile",
-    "description": "Luxurious marble-look ceramic tile.",
+    "description": "Luxurious marble-look porcelain.",
     "price": 4.99,
-    "image": "images/marble-tile.jpg"
+    "image": "images/marble-tile.jpg",
+    "tags": ["bathroom","flooring"]
   },
   {
     "name": "Mosaic Blue Tile",
-    "description": "Colorful mosaic pattern for feature walls.",
+    "description": "Vibrant mosaic for feature walls.",
     "price": 3.75,
-    "image": "images/mosaic-blue.jpg"
+    "image": "images/mosaic-blue.jpg",
+    "tags": ["mosaic","bathroom"]
+  },
+  {
+    "name": "Oak Wood-Effect Plank",
+    "description": "Warm wood tones with porcelain durability.",
+    "price": 5.25,
+    "image": "images/woodlook-oak.jpg",
+    "tags": ["wood","flooring","kitchen"]
   }
 ]
