@@ -33,7 +33,7 @@ mainMenu.items.welcome.html = `
       </div>
     </a>
     <a class="product-card" href="#" onclick="document.getElementById('btn-products').click()">
-      <div class="thumb"><img src="images/cat-woodlook.jpg" alt="Wood Effect"></div>
+      <div class="thumb"><img src="images/cat-woodlook.png" alt="Wood Effect"></div>
       <div class="meta">
         <h3>Wood-Effect</h3>
         <p>Warm tone, porcelain strength.</p>
