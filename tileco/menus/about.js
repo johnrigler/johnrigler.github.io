@@ -20,7 +20,7 @@ mainMenu.items.about.html = `
       <div class="meta">
         <h3>💸 Inexpensive</h3>
         <p>Hosted for free on GitHub Pages (or similar). No monthly license fees, no paid plugins,
-        no recurring maintenance charges.</p>
+        no recurring maintenance charges. </p>
       </div>
     </div>
 
