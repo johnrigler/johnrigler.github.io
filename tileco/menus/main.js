@@ -1,7 +1,6 @@
 const mainMenu = menuFactory();
 mainMenu.tools.add("welcome", "Home", "");
 mainMenu.tools.add("products", "Products", "");
-mainMenu.tools.add("about", "About Us","");
 
 mainMenu.tools.add("contact", "Contact", `
   <section class="section">
