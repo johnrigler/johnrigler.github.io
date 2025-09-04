@@ -70,8 +70,8 @@ fileProxy.drawImage = function drawImage(name, opts = {}) {
     };
 
     const config = { ...defaults, ...opts };
-    console.log(config)
-    
+//    console.log(config)
+
     const img = document.createElement('img');
     const comp = encodeURIComponent(`images/${name}`);
     img.src = `http://localhost:7799/image?file=${comp}&width=${config.width}`;
