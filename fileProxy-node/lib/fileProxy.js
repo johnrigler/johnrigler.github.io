@@ -62,7 +62,6 @@ fileProxy.rmdir = async function rmDir(dir) {
   }).then(r => r.json());
 }
 
-console.log("xxxxxxxxxxxxxxxxxxxxxxxx")
 /*
 fileProxy.drawImage = function drawImage(name, opts = {}) {
 
