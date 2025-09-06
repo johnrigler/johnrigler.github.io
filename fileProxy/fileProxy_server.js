@@ -77,6 +77,41 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Load a binary file (/loadBin)
+  // -------------------------
+
+if (req.method === 'POST' && req.url === '/loadBin') {
+  setCORS(res);
+  let body = '';
+  req.on('data', chunk => (body += chunk));
+  req.on('end', () => {
+    try {
+      const { filename } = JSON.parse(body);
+      if (!filename || typeof filename !== 'string') throw new Error('Missing filename');
+      const filePath = safePath(filename);
+
+      // Read as binary
+      fs.readFile(filePath, (err, data) => {  // <-- no 'utf8'
+        if (err) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: `File not found: ${filename}` }));
+        }
+
+        // Send raw bytes
+        res.writeHead(200, { 'Content-Type': 'application/octet-stream' });
+        res.end(data);
+      });
+
+    } catch (e) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+  });
+  return;
+}
+
+
+
   // -------------------------
   // Save a file (/save)
   // -------------------------
