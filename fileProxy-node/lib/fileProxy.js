@@ -1,3 +1,4 @@
+// sep 6 1:34am
 fileProxy = [];
 window.fileProxy = window.fileProxy || {};
 
@@ -61,6 +62,8 @@ fileProxy.rmdir = async function rmDir(dir) {
   }).then(r => r.json());
 }
 
+console.log("xxxxxxxxxxxxxxxxxxxxxxxx")
+/*
 fileProxy.drawImage = function drawImage(name, opts = {}) {
 
     const defaults = {
@@ -80,6 +83,7 @@ fileProxy.drawImage = function drawImage(name, opts = {}) {
 
     config.target.appendChild(img);
 }
+*/
 
 fileProxy.readBin = async function(filename) {
   try {
