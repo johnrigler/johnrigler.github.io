@@ -100,35 +100,6 @@ fileProxy.readBin = async function(filename) {
   }
 };
 
-fileProxy.xxxloadImage = async function loadImage(path, type ) {
-    try {
-        const res = await fileProxy.readBin(path);
-        const buffer = await res.arrayBuffer(); // ArrayBuffer from proxy
-        console.log("Buffer:", buffer);
-
-        // Correct: add MIME type
-        const blob = new Blob([buffer], { type: type });
-        console.log("Blob:", blob);
-        chisel.blob = blob
-        const url = URL.createObjectURL(blob);
-        console.log("Object URL:", url);
-
-        const img = new Image();
-        img.onload = () => {
-            console.log("Image loaded:", img.naturalWidth, img.naturalHeight);
-      //      reloadImage(img); // your canvas update function
-            URL.revokeObjectURL(url); // cleanup after load
-        };
-        img.src = url;
-   //     canvaz.getContext("2d").drawImage(img, 0, 0);
-
-        return img;
-    } catch (err) {
-        console.error("Failed to load image:", err);
-        return null;
-    }
-}
-
 fileProxy.loadImage = async function loadImageFromFileProxy(path, type ) {
     try {
         const res = await fileProxy.readBin(path);
