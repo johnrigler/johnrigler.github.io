@@ -193,9 +193,14 @@ buildInterface = function buildInterface(menu) {
 
       fileProxy.read("chisel_config.json")
             .then(x => x.json())
-            .then( x => { 
+            .then(x => { 
                chisel.config = x
                loadDefaultKey()
+               })
+            .then(x => {
+               fileProxy.read(chisel.config.recentProjects[0])
+                   .then( x => x.text())
+                   .then( x => eval(x))
                })
 
       document.getElementById('tablet').style.display = 'block';
