@@ -48,6 +48,7 @@ mainMenu.items.import.html = `
   </div>
 
   <button id="reloadButton" onclick="reloadImage()">Reload</button>
+  <button id="sendToTablet" onclick=sendToTablet()">Send to Tablet</button>
 <table><tr><td>
   <br><canvas id="canvaz"></canvas>
   <td><pre id="output"></pre></tr></table>
@@ -213,8 +214,9 @@ function rgbDist(c1, c2) {
 function getClosestChar(rgb) {
   let bestChar = 'z';
   let minDist = Infinity;
-  for (const [char, targetRGB] of Object.entries(colorMap)) {
-    const dist = rgbDist(rgb, targetRGB);
+
+  for (const [char, col] of Object.entries(Tablet.colors)) {
+    const dist = rgbDist(rgb, [col.r, col.g, col.b]);
     if (dist < minDist) {
       minDist = dist;
       bestChar = char;
@@ -222,29 +224,6 @@ function getClosestChar(rgb) {
   }
   return bestChar;
 }
-
-/*
-lines = []
-document.getElementById('imgInput').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  imgImp = new Image();
-  imgImp.onload = reloadImage;
-lastCols = imgImp.width;
-lastRows = imgImp.height;
-
-  imgImp.src = URL.createObjectURL(file);
-  c(imgImp);
-});
-
-*/
-
-//imgImp.onload = function() {
-//  lastCols = imgImp.width;
-//  lastRows = imgImp.height;
-//  reloadImage();
-//};
-
 
 getCharCount = function getCharCount() {
 
@@ -295,18 +274,9 @@ if (aspectLocked && imgImp) {
   }
 }
 
-
-
-
-
-
-
-
   // Reflect this in the Rows input so controls match
     const rowsInput = document.getElementById('rows');
     if (rowsInput) rowsInput.value = targetRows;
-
-
 
     scale = parseFloat(document.getElementById('scale').value);
     xOffset = parseInt(document.getElementById('xOffset')?.value || 0);
@@ -350,7 +320,8 @@ if (aspectLocked && imgImp) {
   const imageData = tempCtx.getImageData(0, 0, targetCols, targetRows).data;
 
   let output = '';
-  lines = [];
+  // lines = [];
+  // 
   for (let y = trimTop; y < targetRows - trimBottom; y++) {
     let line = '';
     for (let x = trimLeft; x < targetCols - trimRight; x++) {
@@ -359,10 +330,13 @@ if (aspectLocked && imgImp) {
       const ch = getClosestChar(rgb);
       line += ch;
 
-      ctx.fillStyle = `rgb(${colorMap[ch].join(',')})`;
+      const col = Tablet.colors[ch] || {r:0, g:0, b:0};
+      ctx.fillStyle = `rgb(${col.r},${col.g},${col.b})`;
+
       ctx.fillRect((x - trimLeft) * scale, (y - trimTop) * scale, scale, scale);
     }
-    lines.push(line);
+    // lines.push(line);
+    Tablet.rows.push(line);
     output += line + '\n';
   }
 
@@ -385,19 +359,31 @@ function toggleMode(enableAdvanced) {
   if (imgImp) reloadImage();
 }
 
+/*
+sendToTablet = async function() {
+
+tabData = [];
+Tablet.rows.forEach( x =>  tabData.push("SN" + x));
+await dgb.util.digiAddress(account.address);
+dgb.util.tabletInit(document.getElementById("tablet"), { lines, account, utxo })
+
+}
+*/
 
 
 textBlock = function() {
   // Create a colorized text block with each character styled
   const outEl = document.getElementById('output');
   outEl.innerHTML = '';
-  lines.forEach(line => {
+  Tablet.rows.forEach(line => {
     const div = document.createElement('div');
     for (const ch of line) {
       const span = document.createElement('span');
       span.textContent = ch;
-      const rgb = colorMap[ch] || [0, 0, 0];
+      const { r, g, b } = Tablet.colors[ch] || { r: 0, g: 0, b: 0 };
+      const rgb = [r, g, b];
       span.style.color = `rgb(${rgb.join(',')})`;
+
       span.style.fontFamily = 'monospace';
       span.style.whiteSpace = 'pre';
       div.appendChild(span);

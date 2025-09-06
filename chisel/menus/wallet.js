@@ -155,7 +155,6 @@ if(typeof(e) == 'undefined')return;
   }
 }
 
-
 mainMenu.items.wallet.renderImportWallet = function(containerId = "main") {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -242,3 +241,19 @@ mainMenu.items.wallet.walletPopup = function walletPopup(topic) {
     document.body.appendChild(popup);
 
 };
+
+function loadDefaultKey() {
+    const defaultKey = chisel.config.settings.defaultKey;
+    const keyObj = chisel.config.privateKeys.find(k => k.name === defaultKey);
+
+    fileProxy.read(keyObj.path)
+        .then(x => x.json())
+        .then(x => {
+            account = x;
+        })
+        .then(() => {
+            mainMenu.items.wallet.renderConfirmWallet(); // now runs after account is loaded
+        });
+}
+
+
