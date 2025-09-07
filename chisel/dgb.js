@@ -978,7 +978,7 @@ dgb.buildRaw = function buildRaw(args, version=2, locktime=0){
   /* inputs */
   hex += varInt(ins.length);
   for(const vin of ins){
-    if (!dgb.check.validateVin(input, msg => alert(msg))) return false;
+    if (!dgb.check.validateVin(vin, msg => alert(msg))) return false;
     hex += vin.txid.match(/../g).reverse().join(''); // txid LE
     hex += u32LE(vin.vout);
     hex += '00';                                    // empty scriptSig

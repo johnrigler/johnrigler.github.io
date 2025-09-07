@@ -50,6 +50,32 @@
         return Object.entries(counts).sort((a, b) => b[1] - a[1]);
     },
 
+   async buildUnique(pre, lines = this.rows, maxSuffix = 10000) {
+    let seen = new Set();
+    let newArray = [];
+    
+    for (let line of lines) {
+        let i = 0;
+        while (i < maxSuffix) {
+            let candidate = await unspendable(pre + line, "", i);
+
+            if (candidate === "undefined") {
+                throw new Error(`unspendable exhausted for ${line}`);
+            }
+
+            if (!seen.has(candidate)) {
+                seen.add(candidate);
+                newArray.push(candidate);
+                break; // next line
+            }
+
+            i++;
+        }
+    }
+
+    return newArray;
+},
+
 
     download(filename="tablet.txt") {
       const blob = new Blob([this.toText()], {type:"text/plain"});
