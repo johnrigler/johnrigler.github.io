@@ -300,6 +300,18 @@ dgb.util.signRawTransaction = function(rawTxHex, privKeyHex) {
   return finalRaw.toLowerCase();
 };
 
+dgb.util.broadcastTx = async function broadcastTx(rawHex) {
+  const res = await fetch("https://digibyteblockexplorer.com/sendtx", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "hex=" + encodeURIComponent(rawHex)
+  });
+  const text = await res.text(); // response might be HTML, not pure JSON
+  console.log(text);
+}
+
 
 dgb.util.base58Encode = function base58Encode(hex) {
   const base58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
