@@ -33,7 +33,18 @@ sha = buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b));
 
 
 chisel = []
-chisel.nodeProxy = []
+
+chisel.textToHex = function textToHex(str) {
+  const encoder = new TextEncoder();      // always UTF-8
+  const bytes = encoder.encode(str);
+  return Array.from(bytes, b => b.toString(16).padStart(2,"0")).join("");
+}
+
+chisel.hexToText = function hexToText(hex) {
+  const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b,16)));
+  const decoder = new TextDecoder("utf-8");
+  return decoder.decode(bytes);
+}
 
 chainz = []
 chainz.apiKey = "2c8cf5f8ed4e"
