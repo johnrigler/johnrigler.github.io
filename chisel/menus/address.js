@@ -65,7 +65,8 @@ async function loadAddressData( address, offset=0 ) {
                 if (v.scriptpubkey_type == "op_return") {
                 
                     const hex = v.scriptpubkey_asm.split(" ")[2] || "";
-                    opReturnAscii = hexToAscii(hex);
+                //    opReturnAscii = hexToAscii(hex);
+                    opReturnAscii = chisel.hexToText(hex)
                //     console.log(hex);
                 }
             });
