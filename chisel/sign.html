@@ -8,6 +8,7 @@
   <script src="b58checkDecode.js"></script>
   <script src="dgb.js?12"></script>
   <script src="base58Color.js"></script>
+  <script src="../fileProxy-node/lib/fileProxy.js"></script>
   <script src="ux.js"></script>
 </head>
 
@@ -23,7 +24,7 @@
 const ec = new elliptic.ec('secp256k1');
 
 
-b58decode = dgb.utils.b58decode
+// b58decode = dgb.util.b58decode
 
 function decodeWIF(wif) {
   try { 
@@ -400,6 +401,8 @@ tablet.push(dgb.utxo2change(dgb.utxo[0],3,.1))
     select.innerHTML = "";
     })  
 })
+
+
 
 
 

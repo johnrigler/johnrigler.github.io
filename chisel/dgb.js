@@ -84,6 +84,13 @@ return {
   };
 }
 
+dgb.util.pkh = function privKey2Hex(wif) {
+  const body = dgb.util.bytesToHex(dgb.util.b58ToBytes(wif)).slice(0, -8);
+  const compressed = body.slice(-2) === '01';
+  return compressed ? body.slice(2, -2) : body.slice(2);
+} 
+ 
+
 dgb.debug.loadPhrase = loadPhrase = function(pos=0) {
 
 final = []
