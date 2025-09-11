@@ -185,7 +185,9 @@ function renderInfoView(tx) {
     return "<pre>" + html + "</pre><hr>" + "<pre>" + html2 + "</pre>";
 }
 
-function setDetailsView(idx, mode) {
+////////////////////////
+
+function xxxxsetDetailsView(idx, mode) {
     const tx = dgb.txsCache[idx]; // We'll store tx data for reuse
     const container = document.getElementById(`details-content-${idx}`);
     if (mode === "info") {
@@ -194,6 +196,27 @@ function setDetailsView(idx, mode) {
         container.innerHTML = `<pre>${JSON.stringify({vin: tx.vin, vout: tx.vout}, null, 2)}</pre>`;
     }
 }
+
+function setDetailsView(idx, mode) {
+  const tx = dgb.txsCache[idx];
+  const container = document.getElementById(`details-content-${idx}`);
+
+  if (mode === "info") {
+    container.innerHTML = renderInfoView(tx);
+
+    // redraw if this tx had a canvas
+    const cIndex = canvi.indexOf(tx.txid);
+    if (cIndex !== -1) {
+      const canvas = document.getElementById(`canvas-${tx.txid}`);
+      chisel.drawCharTabletImage(tabs[cIndex], canvas);
+    }
+  } else {
+    container.innerHTML =
+      `<pre>${JSON.stringify({ vin: tx.vin, vout: tx.vout }, null, 2)}</pre>`;
+  }
+}
+
+////////////////////////
 
 function toggleDetails(idx, btn) {
     const el = document.getElementById(`details-${idx}`);
