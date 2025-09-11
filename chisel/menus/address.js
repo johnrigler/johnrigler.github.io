@@ -130,10 +130,18 @@ new AddressCombo("#addressWidget", {
     }
   });
 
+/*
 canvi.forEach( x =>  {
  canvas = document.getElementById(`canvas-${x}`)
  chisel.drawCharTabletImage(tabs.pop(),canvas);
 })
+*/
+
+for (let i = 0; i < canvi.length; i++) {
+  const canvas = document.getElementById(`canvas-${canvi[i]}`);
+  chisel.drawCharTabletImage(tabs[i], canvas);
+}
+
 
 
 

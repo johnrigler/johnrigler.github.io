@@ -312,6 +312,8 @@ dgb.util.broadcastTx = async function broadcastTx(rawHex) {
   const parser = new DOMParser();
   const docParser = parser.parseFromString(dgb.sendResult, "text/html");
   resultBox.innerText = docParser.querySelectorAll(".message-body")[0].innerText
+  console.log(resultBox.innerText);
+  lines.pop()
 
 
  // response might be HTML, not pure JSON
