@@ -336,6 +336,7 @@ if (aspectLocked && imgImp) {
       ctx.fillRect((x - trimLeft) * scale, (y - trimTop) * scale, scale, scale);
     }
     // lines.push(line);
+    Tablet.rows = [];
     Tablet.rows.push(line);
     output += line + '\n';
   }
@@ -359,16 +360,18 @@ function toggleMode(enableAdvanced) {
   if (imgImp) reloadImage();
 }
 
-/*
+
 sendToTablet = async function() {
-
-tabData = [];
-Tablet.rows.forEach( x =>  tabData.push("SN" + x));
-await dgb.util.digiAddress(account.address);
-dgb.util.tabletInit(document.getElementById("tablet"), { lines, account, utxo })
-
+  c("sendToTablet")
+  lines = [];
+  Tablet.buildUnique("SN",Tablet.rows).then( lines => {
+  Tablet.lines = []
+  lines.forEach( x =>
+        Tablet.lines.push({[x]: 0.0000546})
+            )
+    Tablet.lines.push({[dgb.thunder]: 0.0000546})
+   })          
 }
-*/
 
 
 textBlock = function() {

@@ -299,7 +299,7 @@ dgb.util.signRawTransaction = function(rawTxHex, privKeyHex) {
   const finalRaw = beforeScript + fullScriptLen + scriptSig + afterScript;
   return finalRaw.toLowerCase();
 };
-
+/*
 dgb.util.broadcastTx = async function broadcastTx(rawHex) {
   const res = await fetch("https://digibyteblockexplorer.com/sendtx", {
     method: "POST",
@@ -311,14 +311,58 @@ dgb.util.broadcastTx = async function broadcastTx(rawHex) {
   dgb.sendResult = await res.text();
   const parser = new DOMParser();
   const docParser = parser.parseFromString(dgb.sendResult, "text/html");
-  resultBox.innerText = docParser.querySelectorAll(".message-body")[0].innerText
+  result = docParser.querySelectorAll(".message-body")[0].innerText
+  resultBox.innerText = result;
   console.log(resultBox.innerText);
-  lines.pop()
+  resultArr = result.split(":")
+  if(resultArr[0] == "-26")
+       {
+       splitCode=resultArr[1].split('(code ')
+       if(splitCode[1] == '16)')
+             console.log("increase fee")
+       }
+  // lines.pop()
 
 
  // response might be HTML, not pure JSON
   console.log("broadcast complete");
 }
+*/
+dgb.util.broadcastTx = async function broadcastTx(rawHex) {
+  const res = await fetch("https://digibyteblockexplorer.com/sendtx", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "hex=" + encodeURIComponent(rawHex)
+  });
+  dgb.sendResult = await res.text();
+  const parser = new DOMParser();
+  const docParser = parser.parseFromString(dgb.sendResult, "text/html");
+  result = docParser.querySelectorAll(".message-body")[0].innerText
+  resultBox.innerText = result;
+  console.log(resultBox.innerText);
+  resultArr = result.split(":")
+  if(resultArr[0] == "-26")
+       {
+       splitCode=resultArr[1].split('(code ')
+   /*    if(splitCode[1] == '16)')
+             {
+             var val=splitCode[0]  
+             var valIn=val.split("<")[0].slice(33,-2) * 100000000                var valOut=val.split("<")[1].slice(12,-2) * 100000000
+             var diff=Math.round(valOut) - Math.round(valIn)
+             console.log("increase fee: " + diff)
+             }
+     */    }
+  // lines.pop()
+    
+ 
+ // response might be HTML, not pure JSON
+  console.log("broadcast complete");
+}
+
+// -26: bad-txns-in-belowout, value in (9.5072357) < value out (9.5100467) (code 16)
+// -26: multi-op-return (code 64)
 
 dgb.sendTx = async function sendTx(rawHex, local=0) {
 
