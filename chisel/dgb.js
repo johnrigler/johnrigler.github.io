@@ -308,8 +308,14 @@ dgb.util.broadcastTx = async function broadcastTx(rawHex) {
     },
     body: "hex=" + encodeURIComponent(rawHex)
   });
-  const text = await res.text(); // response might be HTML, not pure JSON
-  console.log(text);
+  dgb.sendResult = await res.text();
+  const parser = new DOMParser();
+  const docParser = parser.parseFromString(dgb.sendResult, "text/html");
+  resultBox.innerText = docParser.querySelectorAll(".message-body")[0].innerText
+
+
+ // response might be HTML, not pure JSON
+  console.log("broadcast complete");
 }
 
 

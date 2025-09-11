@@ -21,6 +21,17 @@ function makeCodeEditor(target) {
   filenameInput.placeholder = "filename.js";
   filenameInput.style.marginRight = "8px";
 
+
+  // result box
+  const resultBox = document.createElement("div");
+  resultBox.id = "resultBox";
+  resultBox.style.border = "1px solid #444";
+  resultBox.style.padding = "10px";
+  resultBox.style.margin = "10px 0";
+  resultBox.style.background = "#222";
+  resultBox.style.color = "#fff";
+
+
   // run button
   const runButton = document.createElement("button");
   runButton.textContent = "Run";
@@ -52,6 +63,7 @@ function makeCodeEditor(target) {
   // assemble UI
   container.appendChild(textarea);
   container.appendChild(document.createElement("br"));
+  container.appendChild(resultBox);
   container.appendChild(filenameInput);
   container.appendChild(runButton);
   container.appendChild(saveButton);
