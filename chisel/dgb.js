@@ -318,6 +318,24 @@ dgb.util.broadcastTx = async function broadcastTx(rawHex) {
   console.log("broadcast complete");
 }
 
+dgb.sendTx = async function sendTx(rawHex, local=0) {
+
+       resultBox.innerText = "sending..."
+
+if(local == 0)
+   dgb.util.broadcastTx(rawHex)
+else
+   {
+       dgb.query("sendrawtransaction", [ srt ] ).then( x => {
+        if(x.error) 
+          resultBox.innerText = x.error
+        else
+          resultBox.innerText = x.result
+   })
+
+  }
+}
+
 
 dgb.util.base58Encode = function base58Encode(hex) {
   const base58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';

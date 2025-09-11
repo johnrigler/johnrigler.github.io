@@ -15,6 +15,19 @@ function makeCodeEditor(target) {
   textarea.style.marginBottom = "8px";
   textarea.id = "evalTextArea";
 
+  // label
+  const oprLabel = document.createElement("label");
+  oprLabel.innerText = "Memo: ";
+  oprLabel.style.marginRight = "8px"; // space between label and input
+
+  // opRet box
+  const opRetInput = document.createElement("input");
+  opRetInput.id = "opRetInput";
+  opRetInput.type = "text";
+  opRetInput.placeholder = "Text and emoticons OK here";
+  opRetInput.style.width = "80%";
+
+
   // filename box
   const filenameInput = document.createElement("input");
   filenameInput.type = "text";
@@ -63,6 +76,8 @@ function makeCodeEditor(target) {
   // assemble UI
   container.appendChild(textarea);
   container.appendChild(document.createElement("br"));
+  container.appendChild(oprLabel);
+  container.appendChild(opRetInput);
   container.appendChild(resultBox);
   container.appendChild(filenameInput);
   container.appendChild(runButton);
