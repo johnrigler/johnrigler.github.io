@@ -336,7 +336,7 @@ if (aspectLocked && imgImp) {
       ctx.fillRect((x - trimLeft) * scale, (y - trimTop) * scale, scale, scale);
     }
     // lines.push(line);
-    Tablet.rows = [];
+ //   Tablet.rows = [];
     Tablet.rows.push(line);
     output += line + '\n';
   }
