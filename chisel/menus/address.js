@@ -18,8 +18,32 @@ async function loadAll(b57file = "b57.json") {
 
 loadAll();
 
-async function loadAddressData( address, offset=0 ) {
-    const url = `https://digiexplorer.info/api/address/${address}/txs?offset=${offset}`;
+dgb.pageFlip = function() {
+
+if(dgb.txsCache.length == 25)
+loadAddressData(dgb.searchAddress,dgb.txsCache[24].txid)
+
+
+}
+
+
+async function loadAddressData( address, chain = "" ) {
+
+
+    dgb.searchAddress = address
+
+    var url = "";
+
+    if(chain == "") {
+    url = `https://digiexplorer.info/api/address/${address}/txs`;
+    }
+    else
+    {
+    url = `https://digiexplorer.info/api/address/${address}/txs/chain/${chain}`;
+    console.log("adfsafsfd",dgb.txsCache.length)
+    }
+
+    
     const container = document.getElementById("section-address"); // replace with actual div id
     container.innerHTML = "Loading...";
 
@@ -30,7 +54,7 @@ async function loadAddressData( address, offset=0 ) {
 
         // Find account amount (sum of UTXOs to address - spent)
         const balance = txs.reduce((bal, tx) => {
-            c(tx.status.block_height)
+        //    c(tx.status.block_height)
             tx.vout.forEach(v => {
                 if (v.scriptpubkey_address === address) {
                     bal += v.value;
@@ -54,6 +78,8 @@ async function loadAddressData( address, offset=0 ) {
                         <th>Date</th>
                         <th>OP_RETURN (ASCII)</th>
                     </tr>`;
+
+        const nextId = "4e92e2aff0fcfb923749f1eb4977988e07d9a7b5ccb97c7942204e5fd6e26ec8"
 
         txs.forEach((tx, idx) => {
             const block = tx.status.block_height;
@@ -104,7 +130,31 @@ async function loadAddressData( address, offset=0 ) {
         });
 
         html += `</table>`;
-        container.innerHTML = `<h2>${address}</h2>` + html + "[more]";
+//        container.innerHTML = `<h2>${address}</h2>` + html + "[next]";
+
+
+       // render the "next" link
+      container.innerHTML = `<h2>${address}</h2>${html}`;
+      // <a href="#" id="nextLink">[next]</a>`;
+      container.innerHTML += `<button id="next-link-button">[next]</button>`;
+
+      // attach handler after the element exists
+   /*   const nextLink = document.getElementById("nextLink");
+      nextLink.addEventListener("click", function (e) {
+          e.preventDefault();
+          dgb.pageFlip()
+       //   loadAddressData(address, nextId);
+      }); */
+
+      const nextLinkButton = document.getElementById("next-link-button");
+      nextLinkButton.addEventListener("click", function (e) {
+          e.preventDefault();
+          dgb.pageFlip()
+       //   loadAddressData(address, nextId);
+      });
+
+
+
 
 
 new AddressCombo("#addressWidget", {
@@ -130,7 +180,8 @@ new AddressCombo("#addressWidget", {
       "DQZbkXxdQXqaW8ruhdJx9jv8sJMPwBgfPi",
       "DDiazJpWifSWsWMG3t8SAAKkYTJRFZJ2uj",
       "DNMrYTWkSvBx2tvAhPRsWiDhauasBYGrwV",
-      "DDigiU3XBpMD4XaiXK9ymYagtrjz73RZ4r"
+      "DDigiU3XBpMD4XaiXK9ymYagtrjz73RZ4r",
+      "DJENMFWXGccx2jsjzJPWfprSzbA4xT7wbp"
     ],
     onSearch: function(addr) {
         loadAddressData(addr)
