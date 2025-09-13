@@ -1260,3 +1260,10 @@ dgb.util.digiTX = async function digiTx( tx ) {
     return await fetch(url).then( x => x.json() )
 }
 
+dgb.opr = function dgbOpr(hex){
+       if(parseInt(hex.slice(0,6)) == 444103) 
+          return hex.substr(5)
+       return chisel.hexToText(hex)
+}
+ 
+

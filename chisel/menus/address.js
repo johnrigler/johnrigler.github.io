@@ -66,7 +66,8 @@ async function loadAddressData( address, offset=0 ) {
                 
                     const hex = v.scriptpubkey_asm.split(" ")[2] || "";
                 //    opReturnAscii = hexToAscii(hex);
-                    opReturnAscii = chisel.hexToText(hex)
+                    opReturnAscii = dgb.opr(hex)
+                 //   opReturnAscii = chisel.hexToText(hex)
                //     console.log(hex);
                 }
             });
@@ -121,7 +122,15 @@ new AddressCombo("#addressWidget", {
       "DThvAmDxnSya4qnMzmmV2fCK8uCcYrHGFM",
       "DBx4CHANzzzzzzzzzzzzzzzzzzzzb1m2Ef",
       "DAzrL96Z61gP8FtXf1tyw5PteJfQs3fEb1",
-      "DAxJoHNxRiGLERzzzzzzzzzzzzzzVKx51Q"
+      "DAxJoHNxRiGLERzzzzzzzzzzzzzzVKx51Q",
+      "DA3GGGgkuAqYTo2fxFzygwQ9ZNzkRuy6tF",
+      "DDeskxHKkHxc3J9g98ZtEvkots3r19u3gp",
+      "DNameFhf7r14n7PDAraSVGY1ew7YjDnWNF",
+      "DRnHQ1TXd5YdsJM982zXrT1ZZbQk4YFNP6",
+      "DQZbkXxdQXqaW8ruhdJx9jv8sJMPwBgfPi",
+      "DDiazJpWifSWsWMG3t8SAAKkYTJRFZJ2uj",
+      "DNMrYTWkSvBx2tvAhPRsWiDhauasBYGrwV",
+      "DDigiU3XBpMD4XaiXK9ymYagtrjz73RZ4r"
     ],
     onSearch: function(addr) {
         loadAddressData(addr)
