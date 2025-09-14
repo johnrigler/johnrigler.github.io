@@ -1263,22 +1263,17 @@ dgb.util.digiTX = async function digiTx( tx ) {
 dgb.opr = function dgbOpr(hex){
        if(parseInt(hex.slice(0,6)) == 444103) // DigiAsset
     {
-    chunk="1d185335dbbdb4f0433801adf7a882e1413159109ec9eb37760e0f83432ce2b5"
-    chunkLen = chunk.length
     rest = hex.substr(5)
     version = rest.substr(0,2)
         
     if(parseInt(version) == 30)
     {
     rest = rest.substr(2)
-    console.log("v30",rest)
-    
-if(rest.substr(0,chunkLen) == chunk)
-{
-return "ddesk: " + rest.substr(chunkLen)
-}
-        console.log(rest.substr(chunkLen))
-    return "v30: " + rest
+    release = rest.substr(0,1)
+    assetId = rest.substr(1,40)
+    assetUniq = rest.substr(41)
+    console.log("v30",release,assetId,assetUniq)
+    return "v30: " + release + "<hr>" + assetId + "<hr>" + assetUniq
     }
           else
              console.log(version)
