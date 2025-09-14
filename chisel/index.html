@@ -183,7 +183,9 @@ buildInterface = function buildInterface(menu) {
 //    document.head.appendChild(link);
 
       showPage("welcome");
-      loadAddressData("DDDDDDDDDDDDDDDDDDDDDDDDDDDD5SVJPi");
+      loadAddressData("DDDDDDDDDDDDDDDDDDDDDDDDDDDD5SVJPi")
+             .then( mainMenu.items.address.page = 0 )
+      
  //     Tablet.loadColors();
 
      // colorMap2 = {}

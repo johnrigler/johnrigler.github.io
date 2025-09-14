@@ -18,12 +18,19 @@ async function loadAll(b57file = "b57.json") {
 
 loadAll();
 
-dgb.pageFlip = function() {
+mainMenu.items.address.pagePrev = function() {
 
-if(dgb.txsCache.length == 25)
-loadAddressData(dgb.searchAddress,dgb.txsCache[24].txid)
+ mainMenu.items.address.page -= 1;
+ loadAddressData(dgb.searchAddress,dgb.prev)
+ }
 
+mainMenu.items.address.pageNext = function() {
 
+   dgb.prev = dgb.txsCache[0].txid
+   mainMenu.items.address.page += 1;
+
+   if(dgb.txsCache.length == 25)
+      loadAddressData(dgb.searchAddress,dgb.txsCache[24].txid)
 }
 
 
@@ -79,7 +86,6 @@ async function loadAddressData( address, chain = "" ) {
                         <th>OP_RETURN (ASCII)</th>
                     </tr>`;
 
-        const nextId = "4e92e2aff0fcfb923749f1eb4977988e07d9a7b5ccb97c7942204e5fd6e26ec8"
 
         txs.forEach((tx, idx) => {
             const block = tx.status.block_height;
@@ -91,10 +97,7 @@ async function loadAddressData( address, chain = "" ) {
                 if (v.scriptpubkey_type == "op_return") {
                 
                     const hex = v.scriptpubkey_asm.split(" ")[2] || "";
-                //    opReturnAscii = hexToAscii(hex);
                     opReturnAscii = dgb.opr(hex)
-                 //   opReturnAscii = chisel.hexToText(hex)
-               //     console.log(hex);
                 }
             });
     
@@ -130,32 +133,32 @@ async function loadAddressData( address, chain = "" ) {
         });
 
         html += `</table>`;
-//        container.innerHTML = `<h2>${address}</h2>` + html + "[next]";
 
 
        // render the "next" link
       container.innerHTML = `<h2>${address}</h2>${html}`;
-      // <a href="#" id="nextLink">[next]</a>`;
-      container.innerHTML += `<button id="next-link-button">[next]</button>`;
 
-      // attach handler after the element exists
-   /*   const nextLink = document.getElementById("nextLink");
-      nextLink.addEventListener("click", function (e) {
+    if(mainMenu.items.address.page > 0)
+      {
+      container.innerHTML += `<button id="prev-link-button">[prev]</button>`;
+
+      prevLinkButton = document.getElementById("prev-link-button");
+      prevLinkButton.addEventListener("click", function (e) {
           e.preventDefault();
-          dgb.pageFlip()
+          mainMenu.items.address.pagePrev()
        //   loadAddressData(address, nextId);
-      }); */
+      });
+      }
+
+
+      container.innerHTML += `<button id="next-link-button">[next]</button>`;
 
       const nextLinkButton = document.getElementById("next-link-button");
       nextLinkButton.addEventListener("click", function (e) {
           e.preventDefault();
-          dgb.pageFlip()
+          mainMenu.items.address.pageNext()
        //   loadAddressData(address, nextId);
       });
-
-
-
-
 
 new AddressCombo("#addressWidget", {
     addresses: [
@@ -185,6 +188,7 @@ new AddressCombo("#addressWidget", {
     ],
     onSearch: function(addr) {
         loadAddressData(addr)
+        mainMenu.items.address.page = 0;
       document.getElementById("results").innerHTML =
         "<h1>" + addr + "</h1>";
     }
@@ -246,16 +250,6 @@ function renderInfoView(tx) {
 }
 
 ////////////////////////
-
-function xxxxsetDetailsView(idx, mode) {
-    const tx = dgb.txsCache[idx]; // We'll store tx data for reuse
-    const container = document.getElementById(`details-content-${idx}`);
-    if (mode === "info") {
-        container.innerHTML = renderInfoView(tx);
-    } else {
-        container.innerHTML = `<pre>${JSON.stringify({vin: tx.vin, vout: tx.vout}, null, 2)}</pre>`;
-    }
-}
 
 function setDetailsView(idx, mode) {
   const tx = dgb.txsCache[idx];
