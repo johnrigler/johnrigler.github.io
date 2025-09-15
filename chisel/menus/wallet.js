@@ -188,7 +188,7 @@ mainMenu.items.wallet.renderLoadWallet = function(containerId = "main") {
 
 let inp = document.createElement('input');
 inp.type = 'file';
-inp.accept = '.json';
+//inp.accept = '.json';
 inp.onchange = e => {
   let f = e.target.files[0];
   if (f) {
