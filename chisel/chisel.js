@@ -510,7 +510,7 @@ async function signDGB(rawTxHex, privKeys) {
     return hex.fromBytes(full.slice(1,33));      // drop 0x80 & checksum
   }
 
-function pruneByIndexes(sourceArray, keepIndexes) {
+pruneByIndexes = function pruneByIndexes(sourceArray, keepIndexes) {
   return sourceArray.filter((_, idx) => keepIndexes.includes(idx));
 }
 
