@@ -25,8 +25,16 @@
             font-family: monospace;
             position: relative;
           }
-          .addr-combo-input {
+          .addr-input {
             width: 100%;
+            padding: 6px 24px 6px 6px;
+            font-size: 14px;
+            background: #222;
+            color: #eee;
+            border: 1px solid #555;
+          }
+          .addr-combo-input {
+            width: 0%;
             padding: 6px 24px 6px 6px;
             font-size: 14px;
             background: #222;
@@ -69,10 +77,17 @@
       this.wrapper = document.createElement("div");
       this.wrapper.className = "addr-combo-container";
 
+      this.input2 = document.createElement("input");
+      this.input2.type = "text";
+      this.input2.className = "addr-input";
+      this.input2.placeholder = "Select or paste address!";
+
+      this.br = document.createElement("br");
+
       this.input = document.createElement("input");
       this.input.type = "text";
       this.input.className = "addr-combo-input";
-      this.input.placeholder = "Select or paste address...";
+   //   this.input.placeholder = "Select or paste address...";
 
       this.dropdownBtn = document.createElement("button");
       this.dropdownBtn.className = "addr-combo-btn";
@@ -81,6 +96,8 @@
       this.list = document.createElement("div");
       this.list.className = "addr-combo-list";
 
+      this.wrapper.appendChild(this.input2);
+      this.wrapper.appendChild(this.br);
       this.wrapper.appendChild(this.input);
       this.wrapper.appendChild(this.dropdownBtn);
       this.wrapper.appendChild(this.list);
@@ -94,6 +111,25 @@
         if (e.key === "Enter") this._doSearch(this.input.value.trim());
       });
       this.input.addEventListener("focus", () => this._renderList(this.input.value.trim()));
+
+// When typing in input2
+this.input2.addEventListener("input", () => {
+  const val = this.input2.value.trim();
+  if (val) {
+    loadAddressData(val);
+  }
+});
+
+
+this.input2.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    const val = this.input2.value.trim();
+    if (val) {
+      loadAddressData(val);
+    }
+  }
+});
+
 
       this.dropdownBtn.addEventListener("click", () => {
         this.input.value = "";

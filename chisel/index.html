@@ -9,16 +9,18 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.8.0/dist/ethers.umd.min.js"
                onload="window.ethers58 = window.ethers; delete window.ethers;"></script>
 
+  <script src="local.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
   <script src="elliptic.6_5_4.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
   <script src="b58checkDecode.js"></script>
   <script src="dgb.js?13s444444fhjk45"></script>
-  <script src="chisel.js?12xxds35"></script>
-  <script src="addressCombo.js"></script>
+  <script src="chisel.js?12x35"></script>
+  <script src="popup.js"></script>
+  <script src="addressCombo.js?gjfd52"></script>
   <script src="decoderaw.js"></script>
   <script src="tablet.js?1fgd26d"></script>
-  <script src="../fileProxy-node/lib/fileProxy.js?ga55das"></script>
+  <script src="../fileProxy-node/lib/fileProxy.js?13gaad4a"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 
   <link rel="stylesheet" href="css/style.css?12345">
@@ -51,7 +53,6 @@ loadScript =  function loadScript(url) {
 
 Promise.all([
   loadScript("hamburger_menu.js"),
-  loadScript("../lib/camera.js"),
   loadScript("../lib/menu.js")
     .then(() => loadScript("menus/main.js"))
     .then(() => Promise.all(
@@ -60,7 +61,7 @@ Promise.all([
       )
     ))
 ]).then(() => {
-  console.log("All scripts loaded");
+  console.log("All primary scripts loaded");
   const main = document.createElement('div');
   buildInterface(mainMenu);
 
@@ -210,15 +211,9 @@ buildInterface = function buildInterface(menu) {
       document.getElementById('tablet').style.display = 'block';
       sectionEval = document.getElementById("section-eval")
       makeCodeEditor(sectionEval,mainMenu.items.eval)
-
-
     }
 
-
  const main = document.createElement('main');
-
-
-
 
 </script>
 

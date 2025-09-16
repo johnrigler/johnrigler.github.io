@@ -1,6 +1,6 @@
-// sep 6 1:34am
 fileProxy = [];
 window.fileProxy = window.fileProxy || {};
+fileProxy.server = "localhost"
 
 fileProxy.write = async function fileWrite(data,file) {
     if(typeof(data) == 'object')
@@ -13,7 +13,7 @@ fileProxy.write = async function fileWrite(data,file) {
     var _data = data;
     type = "text/plain";
     }
-    await fetch(`http://localhost:7799/save?filename=${file}`, {
+    await fetch(`http://${server}:7799/save?filename=${file}`, {
       method: "POST",
       headers: { "Content-Type": type },
       body: _data
@@ -21,7 +21,7 @@ fileProxy.write = async function fileWrite(data,file) {
 }
 
 fileProxy.read = async function fileRead(name) {
-  return await fetch('http://localhost:7799/load', {
+  return await fetch(`http://${server}:7799/load`, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ filename: name })
@@ -30,7 +30,7 @@ fileProxy.read = async function fileRead(name) {
 
 fileProxy.list = async function fileList(dirname = "") {
 
-return await fetch("http://localhost:7799/list", {
+return await fetch(`http://${server}:7799/list`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ dirname: dirname })
@@ -39,7 +39,7 @@ return await fetch("http://localhost:7799/list", {
 }
 
 fileProxy.delete = async function fileDelete(file) {
-  await fetch("http://localhost:7799/delete", {
+  await fetch(`http://${server}:7799/delete`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ filename: file })
@@ -47,7 +47,7 @@ fileProxy.delete = async function fileDelete(file) {
 }
 
 fileProxy.mkdir = async function mkDir(dir) {
-  await fetch("http://localhost:7799/mkdir", {
+  await fetch(`http://${server}:7799/mkdir`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ dirname: dir })
@@ -55,14 +55,13 @@ fileProxy.mkdir = async function mkDir(dir) {
 }
 
 fileProxy.rmdir = async function rmDir(dir) {
-  await fetch("http://localhost:7799/rmdir", {
+  await fetch(`http://${server}:7799/rmdir`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ dirname: dir })
   }).then(r => r.json());
 }
 
-/*
 fileProxy.drawImage = function drawImage(name, opts = {}) {
 
     const defaults = {
@@ -76,17 +75,16 @@ fileProxy.drawImage = function drawImage(name, opts = {}) {
 
     const img = document.createElement('img');
     const comp = encodeURIComponent(`images/${name}`);
-    img.src = `http://localhost:7799/image?file=${comp}&width=${config.width}`;
+    img.src = `http://${server}:7799/image?file=${comp}&width=${config.width}`;
     img.id = name;
     img.className = "clickable-image";
 
     config.target.appendChild(img);
 }
-*/
 
 fileProxy.readBin = async function(filename) {
   try {
-    const res = await fetch('http://localhost:7799/loadBin', {
+    const res = await fetch(`http://${server}:7799/loadBin`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }, // send JSON safely
       body: JSON.stringify({ filename })
@@ -102,6 +100,35 @@ fileProxy.readBin = async function(filename) {
     return null;
   }
 };
+
+fileProxy.xxxloadImage = async function loadImage(path, type ) {
+    try {
+        const res = await fileProxy.readBin(path);
+        const buffer = await res.arrayBuffer(); // ArrayBuffer from proxy
+        console.log("Buffer:", buffer);
+
+        // Correct: add MIME type
+        const blob = new Blob([buffer], { type: type });
+        console.log("Blob:", blob);
+        chisel.blob = blob
+        const url = URL.createObjectURL(blob);
+        console.log("Object URL:", url);
+
+        const img = new Image();
+        img.onload = () => {
+            console.log("Image loaded:", img.naturalWidth, img.naturalHeight);
+      //      reloadImage(img); // your canvas update function
+            URL.revokeObjectURL(url); // cleanup after load
+        };
+        img.src = url;
+   //     canvaz.getContext("2d").drawImage(img, 0, 0);
+
+        return img;
+    } catch (err) {
+        console.error("Failed to load image:", err);
+        return null;
+    }
+}
 
 fileProxy.loadImage = async function loadImageFromFileProxy(path, type ) {
     try {

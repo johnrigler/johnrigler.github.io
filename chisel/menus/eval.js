@@ -44,6 +44,16 @@ function makeCodeEditor(target) {
   resultBox.style.background = "#222";
   resultBox.style.color = "#fff";
 
+  //control box
+  const controlBox = document.createElement("div");
+  controlBox.id = "controlBox";
+  controlBox.style.border = "1px solid #444";
+  controlBox.style.padding = "10px";
+  controlBox.style.margin = "10px 0";
+  controlBox.style.background = "#222";
+  controlBox.style.color = "#fff";
+
+
 
   // run button
   const runButton = document.createElement("button");
@@ -79,9 +89,10 @@ function makeCodeEditor(target) {
   container.appendChild(oprLabel);
   container.appendChild(opRetInput);
   container.appendChild(resultBox);
-  container.appendChild(filenameInput);
-  container.appendChild(runButton);
-  container.appendChild(saveButton);
+  container.appendChild(controlBox);
+  controlBox.appendChild(filenameInput);
+  controlBox.appendChild(runButton);
+  controlBox.appendChild(saveButton);
 
   target.appendChild(container);
 }

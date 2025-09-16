@@ -83,20 +83,7 @@ mainMenu.items.wallet.renderConfirmWallet = function renderConfirmWallet(contain
   <button onclick="(function(){
     downloadPrivateKey.click()
   })();"> 
-    Download/Save 
-  </button>
-
-
-
-</div>
-
-
-
-</div>
-
-    </div>
-
-</div>`;
+    Download/Save </button> </div> </div> </div> </div>`;
 
 ///////// Add a button to the above rendered div to trigger
 //////// sectionWallet.innerHTML = mainMenu.items.wallet.html

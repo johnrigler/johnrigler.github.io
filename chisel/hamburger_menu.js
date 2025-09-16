@@ -147,6 +147,7 @@
   renderConfigUI();
 
   // Download Private Key
+/*
   sidebar.querySelector('#downloadPrivateKey').onclick = () => {
     if (!window.account) return alert('No account loaded.');
     const blob = new Blob([JSON.stringify(window.account)], { type: 'text/javascript' });
@@ -155,6 +156,23 @@
     a.download = window.account.address + '.json';
     a.click();
   };
+*/
+
+sidebar.querySelector('#downloadPrivateKey').onclick = () => {
+  if (!window.account) return alert('No account loaded.');
+  const data = JSON.stringify(window.account, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${window.account.address}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 
   // Redirect home links to GitHub
   sidebar.querySelectorAll('a[href="#"]').forEach(a => {

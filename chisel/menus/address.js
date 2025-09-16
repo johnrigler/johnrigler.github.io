@@ -75,9 +75,14 @@ async function loadAddressData( address, chain = "" ) {
             return bal;
         }, 0);
 
-        let html = `<div id="addressWidget"></div>
+        let html = `
+
+  <div id="address-select"></div>
+
+                    <div id="addressWidget"></div>
                     <pre id="results"></pre>
                     <div>Balance: ${balance / 1e8} DGB</div>`;
+
         html += `<table border="1" cellspacing="0" cellpadding="4">
                     <tr>
                         <th></th>
@@ -194,6 +199,16 @@ new AddressCombo("#addressWidget", {
     }
   });
 
+options = [
+      { value: "", text: "-- pick one --" },
+      { value: "DGB1abc…", text: "DGB1abc…" },
+      { value: "DGB1def…", text: "DGB1def…" },
+      { value: "DGB1ghi…", text: "DGB1ghi…" }
+    ];
+
+// updateOption( options )
+
+
 
 canvi.forEach( x =>  {
  canvas = document.getElementById(`canvas-${x}`)
@@ -297,3 +312,20 @@ function hexToAscii(hex) {
     }
     return str;
 }
+
+updateOption = function updateOption(opts) {
+
+var addrSelect = document.getElementById("address-select");
+
+    
+addrSelect.innerHTML=""
+    
+opts.forEach(opt => {
+      const option = document.createElement("option");
+      option.value = opt.value;
+      option.textContent = opt.text;
+      select.appendChild(option);
+    });
+    
+}
+

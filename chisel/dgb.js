@@ -1282,4 +1282,70 @@ dgb.opr = function dgbOpr(hex){
        return chisel.hexToText(hex)
 }
  
+dgb.util.signRawTransaction = function(rawTxHex, privKeys) {
+  const ec = new elliptic.ec('secp256k1');
+
+  const version = rawTxHex.slice(0, 8);
+  const vinCount = parseInt(rawTxHex.slice(8, 10), 16);
+
+  let cursor = 10;
+  const vins = [];
+
+  // --- parse inputs ---
+  for (let i = 0; i < vinCount; i++) {
+    const txidLE = rawTxHex.slice(cursor, cursor + 64);
+    const vout   = rawTxHex.slice(cursor + 64, cursor + 72);
+    const scriptLen = parseInt(rawTxHex.slice(cursor + 72, cursor + 74), 16);
+    const scriptEnd = cursor + 74 + scriptLen * 2;
+    const seq    = rawTxHex.slice(scriptEnd, scriptEnd + 8);
+
+    vins.push({ txidLE, vout, seq, scriptSig: '' });
+    cursor = scriptEnd + 8;
+  }
+
+  const outputsAndLock = rawTxHex.slice(cursor);
+
+  // --- sign each input individually ---
+  vins.forEach((vin, idx) => {
+    const privKeyHex = privKeys[idx];
+    const key = ec.keyFromPrivate(privKeyHex);
+    const pubkey = key.getPublic(true, 'hex');
+    const pubkeyHash = dgb.util.ripemd160(dgb.util.sha256(pubkey));
+    const pkScript = '76a914' + pubkeyHash + '88ac';
+
+    // build sighash preimage
+    let preimage = version + dgb.helper.varInt(vins.length);
+    vins.forEach((v, j) => {
+      preimage += v.txidLE + v.vout;
+      if (j === idx) {
+        preimage += dgb.util.byteHex(pkScript.length / 2) + pkScript;
+      } else {
+        preimage += '00';
+      }
+      preimage += v.seq;
+    });
+    preimage += outputsAndLock + '01000000'; // sighash_all
+
+    const hash = dgb.util.sha256(dgb.util.sha256(preimage));
+    const sig = key.sign(hash, { canonical: true });
+    const sigHex = sig.toDER('hex') + '01';
+
+    const scriptSig =
+      dgb.util.byteHex(sigHex.length / 2) + sigHex +
+      dgb.util.byteHex(pubkey.length / 2) + pubkey;
+
+    vin.scriptSig = scriptSig;
+  });
+
+  // --- final assembly ---
+  let finalTx = version + dgb.helper.varInt(vins.length);
+  vins.forEach(v => {
+    finalTx += v.txidLE + v.vout;
+    finalTx += dgb.util.byteHex(v.scriptSig.length / 2) + v.scriptSig;
+    finalTx += v.seq;
+  });
+  finalTx += outputsAndLock;
+
+  return finalTx.toLowerCase();
+};
 
