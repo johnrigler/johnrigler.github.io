@@ -15,7 +15,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
   <script src="b58checkDecode.js"></script>
   <script src="dgb.js?13s444444fhjk45"></script>
-  <script src="chisel.js?12oofds5"></script>
+  <script src="chisel.js?245gfsd4"></script>
   <script src="popup.js"></script>
   <script src="addressCombo.js?gjfd52"></script>
   <script src="decoderaw.js"></script>
@@ -196,6 +196,39 @@ buildInterface = function buildInterface(menu) {
       )
       )
 
+
+dgb.source=`
+dgb.util.digiAddress(account.address).then( vin => {
+
+evalPopup(
+vin.map( (x,y) => y + ": " + x.value  )
+).then(result => {
+   if(result)
+    {
+    idx = result.map( x => parseInt(x.split(":")[0]) );
+    utxo = chisel.pruneByIndexes(vin,idx);
+    var change = 0;
+    utxo.map( x => change += x.value )
+    console.log(change,utxo)
+    vinFee = 120
+    voutFee = 100
+    change -= utxo.length*vinFee
+    change -= voutFee
+    vout = []
+    vout.push({ [vin[0].address]: change / 100000000 })
+    rt = dgb.buildRaw( [utxo, vout] )
+    pk = dgb.util.pkh(account.privKeyWif)
+    srt=dgb.util.signRawTransaction(rt, [pk])
+    dgb.sendTx(srt);
+    c(rt,srt)
+
+    }
+  });
+});
+`
+
+
+
       fileProxy.read("chisel_config.json")
             .then(x => x.json())
             .then(x => { 
@@ -211,6 +244,9 @@ buildInterface = function buildInterface(menu) {
       document.getElementById('tablet').style.display = 'block';
       sectionEval = document.getElementById("section-eval")
       makeCodeEditor(sectionEval,mainMenu.items.eval)
+
+//      evalTextArea.value = dgb.source.replace(/\\n/g, '\n');
+
     }
 
  const main = document.createElement('main');

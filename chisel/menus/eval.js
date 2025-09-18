@@ -53,14 +53,13 @@ function makeCodeEditor(target) {
   controlBox.style.background = "#222";
   controlBox.style.color = "#fff";
 
-
-
   // run button
   const runButton = document.createElement("button");
   runButton.textContent = "Run";
   runButton.id = "runButton";
   runButton.onclick = () => {
-    const code = textarea.value;
+    const code = textarea.value 
+
     try {
       eval(code);
     } catch (e) {
@@ -95,5 +94,88 @@ function makeCodeEditor(target) {
   controlBox.appendChild(saveButton);
 
   target.appendChild(container);
+
+
+
+evalPopup = function evalPopup(vout = [] , fee = 100){
+  
+dgb.util.digiAddress(account.address).then( vin =>
+   {
+   openMultiSelectPopup(vin.map( (x,y) => y + ": " + x.value )).then( result => {
+    idx = result.map( x => parseInt(x.split(":")[0]) ); 
+    utxo = chisel.pruneByIndexes(vin,idx);
+    var change = 0;
+    utxo.map( x => change += x.value )
+       c(change,utxo)
+       change -= utxo.length*fee
+       change -= fee
+       vout = []
+      vout.push({ [vin[0].address]: change / 100000000 })
+      rt = dgb.buildRaw( [utxo, vout] )
+      pk = dgb.util.pkh(account.privKeyWif)
+      srt=dgb.util.signRawTransaction(rt, [pk])
+      dgb.sendTx(srt);
+      c(rt,srt) 
+     })
+   })
 }
 
+evalPopup = function evalPopup(vout = [] , fee = 100){
+  
+dgb.util.digiAddress(account.address).then( vin =>
+   {
+   openMultiSelectPopup(vin.map( (x,y) => y + ": " + x.value )).then( result => {
+    idx = result.map( x => parseInt(x.split(":")[0]) );
+    utxo = chisel.pruneByIndexes(vin,idx);
+    var change = 0;
+    utxo.map( x => change += x.value )
+       c(change,utxo)
+       change -= utxo.length*fee
+       change -= fee
+       change -= vout.length * fee
+     //  vout = []
+      vout.push({ [vin[0].address]: change / 100000000 })
+       c(change)
+      rt = dgb.buildRaw( [utxo, vout] )
+      pk = dgb.util.pkh(account.privKeyWif)
+      srt=dgb.util.signRawTransaction(rt, [pk])
+      dgb.sendTx(srt);
+    //  c(rt,srt)
+     })
+   })
+} 
+
+// sendToTablet()
+// Tablet.lines.push({"data":asciiToHex("https://wordsworth-editions.com/the-pleasures-of-james-joyce/")})
+
+
+evalPopup = async function evalPopup(vout = [], rate = 1) {   // rate = sat/byte
+  const vin = await dgb.util.digiAddress(account.address);
+
+  const choice = await openMultiSelectPopup(
+    vin.map((x, i) => `${i}: ${x.value}`)
+  );
+  if (!choice) return;
+
+  const idx  = choice.map(x => parseInt(x.split(':')[0]));
+  const utxo = chisel.pruneByIndexes(vin, idx);
+
+  let change = utxo.reduce((sum, x) => sum + x.value, 0);
+
+  // rough size: 10 + (148 * #inputs) + (34 * #outputs)
+  const size = 10 + 148 * utxo.length + 34 * (vout.length + 1);
+  const fee  = size * rate;
+
+  change -= fee;
+  vout.push({ [vin[0].address]: change / 1e8 });
+
+  const rt  = dgb.buildRaw([utxo, vout]);
+  const pk  = dgb.util.pkh(account.privKeyWif);
+  const srt = dgb.util.signRawTransaction(rt, [pk]);
+  await dgb.sendTx(srt);
+
+  return {fee, size, vout};
+}
+
+
+}

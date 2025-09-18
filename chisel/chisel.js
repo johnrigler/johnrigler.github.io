@@ -34,6 +34,10 @@ sha = buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b));
 
 chisel = []
 
+chisel.pruneByIndexes = function pruneByIndexes(sourceArray, keepIndexes) {
+  return sourceArray.filter((_, idx) => keepIndexes.includes(idx));
+}
+
 chisel.textToHex = function textToHex(str) {
   const encoder = new TextEncoder();      // always UTF-8
   const bytes = encoder.encode(str);
@@ -509,11 +513,6 @@ async function signDGB(rawTxHex, privKeys) {
     if (chk.some((v,i)=>v!==full[full.length-4+i])) throw 'bad WIF checksum';
     return hex.fromBytes(full.slice(1,33));      // drop 0x80 & checksum
   }
-
-pruneByIndexes = function pruneByIndexes(sourceArray, keepIndexes) {
-  return sourceArray.filter((_, idx) => keepIndexes.includes(idx));
-}
-
 
   /* varint helpers */
   const readVarInt = (v,o) => {
