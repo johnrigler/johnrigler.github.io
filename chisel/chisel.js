@@ -73,8 +73,8 @@ chisel.drawCharTabletImage = function drawCharTabletImage(output, canvas, scale 
   console.log(canvas);
   const ctx = canvas.getContext('2d');
 
-console.log(canvas, canvas instanceof HTMLCanvasElement);
-console.log(ctx);
+//console.log(canvas, canvas instanceof HTMLCanvasElement);
+//console.log(ctx);
 
     
   canvas.width = cols * scale;

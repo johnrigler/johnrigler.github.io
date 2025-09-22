@@ -259,7 +259,7 @@ function renderInfoView(tx) {
     
     tabs.push(tablet);
     canvi.push(tx.txid);
-    html += `<canvas id=${"canvas-" + tx.txid}></canvas><br>`;
+    html += `<canvas type="txCanvas" id=${"canvas-" + tx.txid}></canvas><br>`;
          }
     return "<pre>" + html + "</pre><hr>" + "<pre>" + html2 + "</pre>";
 }
