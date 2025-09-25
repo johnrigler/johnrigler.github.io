@@ -183,9 +183,26 @@ buildInterface = function buildInterface(menu) {
 //    link.href = './css/style.css';  // relative path to your file
 //    document.head.appendChild(link);
 
+
+  // grab everything after the last slash
+  const raw = window.location.pathname.replace(/^\/+/, '');
+  addr = raw.trim()
+
+  // very naive regex for BTC/DGB addresses (base58 or bech32)
+
+//  if (addr) {
+
+//     showPage("address");
+     
+//     loadAddressData(addr)
+
+//  } else {
+
       showPage("welcome");
       loadAddressData("DDDDDDDDDDDDDDDDDDDDDDDDDDDD5SVJPi")
              .then( mainMenu.items.address.page = 0 )
+
+//  }
       
  //     Tablet.loadColors();
 
