@@ -160,7 +160,7 @@ buildInterface = function buildInterface(menu) {
     Join our Discord
   </a>
 
-  <a href="https://github.com/johnrigler/chisel" target="_blank" rel="noopener noreferrer"
+  <a href="https://github.com/johnrigler/johnrigler.github.io/chisel" target="_blank" rel="noopener noreferrer"
      style="
        display: inline-block;
        padding: 10px 18px;
@@ -183,26 +183,22 @@ buildInterface = function buildInterface(menu) {
 //    link.href = './css/style.css';  // relative path to your file
 //    document.head.appendChild(link);
 
-
   // grab everything after the last slash
-  const raw = window.location.pathname.replace(/^\/+/, '');
-  addr = raw.trim()
-
-  // very naive regex for BTC/DGB addresses (base58 or bech32)
-
-//  if (addr) {
-
-//     showPage("address");
+  const Args = window.location.search;
+  if(Args.length == 35 && Args[0] == "?")
+   {
+     showPage("address");
+     console.log(Args.substr(1));
      
-//     loadAddressData(addr)
+     loadAddressData(Args.substr(1))
 
-//  } else {
+  } else {
 
       showPage("welcome");
       loadAddressData("DDDDDDDDDDDDDDDDDDDDDDDDDDDD5SVJPi")
              .then( mainMenu.items.address.page = 0 )
 
-//  }
+  }
       
  //     Tablet.loadColors();
 
