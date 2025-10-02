@@ -144,7 +144,7 @@ buildInterface = function buildInterface(menu) {
       const footer = document.createElement('div');
       footer.innerHTML = `<br><hr> 
 
-  <a href="https://discord.gg/uZ473s4Y" target="_blank" rel="noopener noreferrer"
+  <a href="https://discord.gg/BhPykF9zU3" target="_blank" rel="noopener noreferrer"
      style="
        display: inline-block;
        padding: 10px 18px;
@@ -257,6 +257,8 @@ vin.map( (x,y) => y + ": " + x.value  )
       document.getElementById('tablet').style.display = 'block';
       sectionEval = document.getElementById("section-eval")
       makeCodeEditor(sectionEval,mainMenu.items.eval)
+
+      loadScript("artifact-render.js")
 
 //      evalTextArea.value = dgb.source.replace(/\\n/g, '\n');
 
