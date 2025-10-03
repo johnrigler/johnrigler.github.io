@@ -15,7 +15,24 @@ function makeCodeEditor(target) {
   textarea.style.marginBottom = "8px";
   textarea.id = "evalTextArea";
 
-  // label
+  // Index Div
+  const indexDiv = document.createElement("div");
+  indexDiv.id = "indexDiv";
+
+  // Index label
+  const indexLabel = document.createElement("label");
+  indexLabel.innerText = "Index: ";
+  indexLabel.style.marginRight = "8px"; // space between label and input
+
+  // indexBox
+  const indexBox = document.createElement("input");
+  indexBox.id = "indexBox";
+  indexBox.type = "text";
+  indexBox.value = dgb.anchor
+  indexBox.style.width = "80%";
+
+
+  // opRet label
   const oprLabel = document.createElement("label");
   oprLabel.innerText = "Memo: ";
   oprLabel.style.marginRight = "8px"; // space between label and input
@@ -85,6 +102,10 @@ function makeCodeEditor(target) {
   // assemble UI
   container.appendChild(textarea);
   container.appendChild(document.createElement("br"));
+  indexDiv.appendChild(indexLabel);
+  indexDiv.appendChild(indexBox);
+  container.appendChild(indexDiv);
+  container.appendChild(document.createElement("br"));
   container.appendChild(oprLabel);
   container.appendChild(opRetInput);
   container.appendChild(resultBox);
@@ -95,6 +116,29 @@ function makeCodeEditor(target) {
 
   target.appendChild(container);
 
+
+// #controlBox
+new AddressCombo("#indexDiv", {
+    addresses: [
+      "DDDDDDDDDDDDDDDDDDDDDDDDDDDD5SVJPi",
+      "DDeskxHKkHxc3J9g98ZtEvkots3r19u3gp",
+      "DNameFhf7r14n7PDAraSVGY1ew7YjDnWNF",
+      "DRnHQ1TXd5YdsJM982zXrT1ZZbQk4YFNP6",
+      "DQZbkXxdQXqaW8ruhdJx9jv8sJMPwBgfPi",
+      "DDiazJpWifSWsWMG3t8SAAKkYTJRFZJ2uj",
+      "DNMrYTWkSvBx2tvAhPRsWiDhauasBYGrwV",
+      "DDigiU3XBpMD4XaiXK9ymYagtrjz73RZ4r",
+      "DJENMFWXGccx2jsjzJPWfprSzbA4xT7wbp"
+    ],
+    onSearch: function(addr) {
+        c(addr)
+        indexBox.value=addr
+    //    loadAddressData(addr)
+   //     mainMenu.items.address.page = 0;
+   //   document.getElementById("results").innerHTML =
+   //     "<h1>" + addr + "</h1>";
+    }
+  });
 
 
 evalPopup = function evalPopup(vout = [] , fee = 100){

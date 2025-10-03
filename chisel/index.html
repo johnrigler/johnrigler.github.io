@@ -188,9 +188,11 @@ buildInterface = function buildInterface(menu) {
   if(Args.length == 35 && Args[0] == "?")
    {
      showPage("address");
-     console.log(Args.substr(1));
      
-     loadAddressData(Args.substr(1))
+     dgb.anchor = Args.substr(1);
+     loadAddressData(dgb.anchor);
+ //    indexBox.value = dgb.anchor;
+     
 
   } else {
 
