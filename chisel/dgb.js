@@ -6,6 +6,8 @@ dgb.debug = [];
 dgb.check = [];
 dgb.util = [];
 
+dgb.api = "https://secretbeachsolutions.com:8443/"
+
 dgb.check.validateVin = function(obj, onError = console.error) {
   if (typeof obj !== 'object' || obj === null) {
     onError('Error: vin must be a non-null object.');
