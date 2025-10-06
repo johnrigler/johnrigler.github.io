@@ -1,0 +1,159 @@
+<!-- Drop-in div: "Fuck Trump" banner (paste into any HTML page) -->
+<div id="ft-banner" aria-live="polite" title="Political expression">
+  <div class="ft-inner">
+    <button class="ft-close" aria-label="close banner">&times;</button>
+    <h1 class="ft-title">FUCK TRUMP</h1>
+    <p class="ft-sub">Wannabe fascist. Accountability, not applause.</p>
+
+    <details class="ft-details">
+      <summary>Why this matters</summary>
+      <p>
+        This page is civic expression. It targets a public figure and criticizes his authoritarian tendencies.
+        Use responsibly.
+      </p>
+    </details>
+
+    <div class="ft-actions">
+      <button class="ft-copy" data-text="FUCK TRUMP — hold power accountable">Copy chant</button>
+      <button class="ft-toggle-compact">Compact</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Minimal, self-contained styling. Scoped to #ft-banner so it's drop-in safe. */
+  #ft-banner { 
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 999999;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  #ft-banner .ft-inner{
+    background: linear-gradient(135deg,#111 0%, #2b2b2b 100%);
+    color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    padding: 14px 18px;
+    width: 320px;
+    max-width: calc(100vw - 36px);
+    display: grid;
+    gap: 8px;
+    align-items: start;
+  }
+  #ft-banner .ft-title{
+    margin:0;
+    font-size:20px;
+    letter-spacing: 0.06em;
+    line-height:1;
+    text-transform:uppercase;
+    background: linear-gradient(90deg,#ff3b30,#ff5e3a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 800;
+  }
+  #ft-banner .ft-sub{
+    margin:0;
+    font-size:12px;
+    opacity:.85;
+  }
+  #ft-banner .ft-close{
+    position:absolute;
+    right:6px;
+    top:6px;
+    border:0;
+    background:transparent;
+    color:#fff;
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+    padding:6px;
+    border-radius:6px;
+  }
+  #ft-banner .ft-close:hover{ background: rgba(255,255,255,0.04); }
+
+  #ft-banner details.ft-details summary{
+    cursor:pointer;
+    list-style:none;
+    outline:none;
+    margin:6px 0;
+    padding:6px;
+    border-radius:8px;
+  }
+  #ft-banner details.ft-details[open] summary{ background: rgba(255,255,255,0.03); }
+
+  #ft-banner .ft-actions{
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+  }
+  #ft-banner button.ft-copy,
+  #ft-banner button.ft-toggle-compact{
+    border:0;
+    padding:8px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:12px;
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+  }
+  #ft-banner button.ft-copy:active { transform: translateY(1px); }
+  #ft-banner.compact .ft-inner { width: 220px; padding:10px; }
+  #ft-banner.compact .ft-sub,
+  #ft-banner.compact details { display:none; }
+  @media (max-width:420px){ #ft-banner { right:10px; bottom:10px; } }
+</style>
+
+<script>
+  (function(){
+    const root = document.getElementById('ft-banner');
+    if(!root) return;
+
+    const btnClose = root.querySelector('.ft-close');
+    const btnCopy = root.querySelector('.ft-copy');
+    const btnCompact = root.querySelector('.ft-toggle-compact');
+
+    // Close (hide) but keep in DOM for easy re-show by other scripts.
+    btnClose.addEventListener('click', () => {
+      root.style.display = 'none';
+    });
+
+    // Copy preset chant to clipboard and confirm via temporary state.
+    btnCopy.addEventListener('click', async (e) => {
+      const text = e.currentTarget.getAttribute('data-text') || 'FUCK TRUMP';
+      try {
+        await navigator.clipboard.writeText(text);
+        e.currentTarget.textContent = 'Copied';
+        setTimeout(()=> e.currentTarget.textContent = 'Copy chant', 1500);
+      } catch (err) {
+        // fallback: select hidden textarea
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); e.currentTarget.textContent = 'Copied'; }
+        catch(_) { e.currentTarget.textContent = 'Copy failed'; }
+        document.body.removeChild(ta);
+        setTimeout(()=> e.currentTarget.textContent = 'Copy chant', 1500);
+      }
+    });
+
+    // Toggle compact mode: minimal footprint
+    btnCompact.addEventListener('click', () => {
+      root.classList.toggle('compact');
+      btnCompact.textContent = root.classList.contains('compact') ? 'Expand' : 'Compact';
+    });
+
+    // Accessibility: allow closing with Escape when focused inside banner
+    root.addEventListener('keydown', (ev) => {
+      if(ev.key === 'Escape') root.style.display = 'none';
+    });
+
+    // Do not auto-open or autoplay anything: drop-in safe.
+  })();
+</script>
+

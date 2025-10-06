@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Athlete Bidding</title>
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #111;
+  color: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.phone-frame {
+  width: 360px;
+  height: 640px;
+  border: 16px solid #222;
+  border-radius: 24px;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  background: #1a1a1a;
+  padding: 12px;
+  text-align: center;
+  font-size: 1.2em;
+  border-bottom: 1px solid #333;
+}
+
+.athlete-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.athlete-card {
+  background: #222;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.athlete-card:hover {
+  transform: scale(1.03);
+  background: #333;
+}
+
+.athlete-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.bid-button {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: limegreen;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.bid-button:hover {
+  background: #2ecc71;
+}
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="header">Athlete Bidding</div>
+  <div class="athlete-list" id="athleteList"></div>
+</div>
+
+<script>
+// Athlete data
+const athletes = [
+  { name: "Serena Williams", img: "https://via.placeholder.com/150/FF0000/FFFFFF?text=Serena" },
+  { name: "Lionel Messi", img: "https://via.placeholder.com/150/00FF00/FFFFFF?text=Messi" },
+  { name: "Usain Bolt", img: "https://via.placeholder.com/150/0000FF/FFFFFF?text=Bolt" },
+  { name: "Simone Biles", img: "https://via.placeholder.com/150/FFFF00/000000?text=Biles" },
+  { name: "LeBron James", img: "https://via.placeholder.com/150/FF00FF/FFFFFF?text=LeBron" },
+  { name: "Michael Phelps", img: "https://via.placeholder.com/150/00FFFF/000000?text=Phelps" }
+];
+
+// Render athlete cards
+const athleteList = document.getElementById("athleteList");
+athletes.forEach(a => {
+  const card = document.createElement("div");
+  card.className = "athlete-card";
+  card.innerHTML = `
+    <img class="athlete-img" src="${a.img}" alt="${a.name}">
+    <div>${a.name}</div>
+    <button class="bid-button">Bid</button>
+  `;
+  card.querySelector(".bid-button").addEventListener("click", () => {
+    alert(`Bid placed on ${a.name}`);
+  });
+  athleteList.appendChild(card);
+});
+</script>
+
+</body>
+</html>
+

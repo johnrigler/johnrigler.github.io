@@ -1,0 +1,13 @@
+<html>
+<script src="https://unpkg.com/digibyte@0.15.8/digibyte.js"></script>
+<script src="https://unpkg.com/digibyte-js/dist/digibyte.js"></script>
+<script>
+  const message = "Hello DigiByte!";
+  const privateKey = new DigiByte.PrivateKey();
+  const address = privateKey.toAddress();
+  const signature = DigiByte.Message.sign(message, privateKey);
+  const valid = DigiByte.Message.verify(message, address, signature);
+</script>
+
+
+</html>

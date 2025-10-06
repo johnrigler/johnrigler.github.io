@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Address Picker Demo</title>
+</head>
+<body>
+  <div id="app">
+    <h2>Address Picker!</h2>
+
+    <label for="addrInput">Address:</label>
+    <input type="text" id="addrInput" placeholder="Paste or pick an address">
+    <button id="addrButton">▼</button>
+
+    <!-- Options are defined here -->
+    <select id="addrSelect" style="display:none;">
+      <option value="">-- pick one --</option>
+      <option value="DGB1abc…">DGB1abc…</option>
+      <option value="DGB1def…">DGB1def…</option>
+      <option value="DGB1ghi…">DGB1ghi…</option>
+    </select>
+
+    <p><button id="showValue">Show Current Value</button></p>
+    <pre id="output"></pre>
+  </div>
+
+  <script src="addressCombo4.js"></script>
+</body>
+</html>

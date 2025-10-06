@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<body>
+<pre id="out"></pre>
+<script>
+function modExp(base, exp, mod) {
+  let res = 1n;
+  base = base % mod;
+  while (exp > 0n) {
+    if (exp % 2n === 1n) res = (res * base) % mod;
+    exp = exp / 2n;
+    base = (base * base) % mod;
+  }
+  return res;
+}
+
+function schnorrDemo() {
+  const p = 23n;      // prime
+  const g = 5n;       // generator
+  const x = 6n;       // secret
+  const y = modExp(g, x, p); // public
+
+  // Step 1: Prover commit
+  const r = 15n; // random nonce
+  const t = modExp(g, r, p);
+
+  // Step 2: Verifier challenge
+  const c = 7n; // random challenge
+
+  // Step 3: Prover response
+  const s = (r + c * x) % (p - 1n);
+
+  // Step 4: Verifier check
+  const lhs = modExp(g, s, p);
+  const rhs = (t * modExp(y, c, p)) % p;
+
+  return {p, g, x, y, r, t, c, s, lhs, rhs, valid: lhs === rhs};
+}
+
+document.querySelector("#out").textContent = JSON.stringify(schnorrDemo(), null, 2);
+</script>
+</body>
+</html>
+
