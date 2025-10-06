@@ -15,50 +15,29 @@ class BettingSim {
       this.PLAYERS.map(()=>Math.random()*5)
     );
 
-    // element references
     this.container = document.getElementById(containerId);
     this.chartEl = document.getElementById(chartId);
     this.percentEl = document.getElementById(percentId);
 
-    // start npc updates
     setInterval(() => this.npcTradingStep(), 10000);
     this.generateSocialCommentary();
     this.render();
   }
 
   normalizePrices() {
-    const totalViews = this.PLAYERS.reduce((sum, p) => sum + p.views, 0);
-    this.PLAYERS.forEach(p => {
-      p.price = (p.views / totalViews) * (this.TOTAL_SUPPLY / this.PLAYERS.length);
-    });
+    PriceLogic.normalizePrices(this.PLAYERS, this.TOTAL_SUPPLY);
   }
 
   totalValue() {
-    return this.userFunds + this.PLAYERS.reduce((sum, p) => sum + p.owned * p.price, 0);
+    return PriceLogic.totalValue(this.PLAYERS, this.userFunds);
   }
 
   randomSocialUpdate() {
-    this.PLAYERS.forEach(p => {
-      const change = 0.98 + Math.random() * 0.04;
-      p.views *= change;
-    });
+    PriceLogic.randomSocialUpdate(this.PLAYERS);
   }
 
   npcTradingStep() {
-    for (let n=0; n<this.NPCS; n++) {
-      const target = Math.floor(Math.random()*this.PLAYERS.length);
-      const p = this.PLAYERS[target];
-      const decision = Math.random();
-      const amt = (Math.random()*0.5).toFixed(2);
-      if (decision < 0.5) {
-        this.npcHoldings[n][target] += parseFloat(amt);
-        p.views *= 1.005;
-      } else {
-        if (this.npcHoldings[n][target] > 0) this.npcHoldings[n][target] -= parseFloat(amt);
-        p.views *= 0.995;
-      }
-    }
-    this.randomSocialUpdate();
+    PriceLogic.npcTradingStep(this.PLAYERS, this.npcHoldings, this.NPCS);
     this.render(true);
   }
 
@@ -204,7 +183,6 @@ class BettingSim {
       this.drawChart(canvas, sorted[idx].history);
     });
 
-    // event bindings
     document.getElementById("manualUpdate").onclick = () => { this.randomSocialUpdate(); this.render(true); };
     document.getElementById("applyChanges").onclick = () => this.applyChanges();
     document.getElementById("applyChanges2").onclick = () => this.applyChanges();

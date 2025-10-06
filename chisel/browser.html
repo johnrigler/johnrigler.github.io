@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DigiByte Test</title>
+</head>
+<body>
+  <h1>DigiByte Test</h1>
+  <pre id="output"></pre>
+
+  <!-- Your browserified digibyte.js -->
+  <script src="digibyte-js.browser.js"></script>
+  <script>
+    const output = document.getElementById('output');
+
+    try {
+      // 1. Generate a new private key
+      const privateKey = new digibyte.PrivateKey();
+      output.innerText += 'Private Key (WIF): ' + privateKey.toWIF() + '\n';
+
+      // 2. Derive the corresponding public address
+      const address = privateKey.toAddress();
+      output.innerText += 'Address: ' + address.toString() + '\n';
+
+      // 3. Optional: check the network
+      output.innerText += 'Network: ' + address.network.name + '\n';
+
+    } catch (err) {
+      output.innerText += 'Error: ' + err.message + '\n';
+    }
+  </script>
+</body>
+</html>
+
