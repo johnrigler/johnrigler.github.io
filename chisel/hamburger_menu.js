@@ -59,7 +59,8 @@
     <details open>
       <summary>Config</summary>
       <ul style="list-style: none; padding-left: 10px;">
-        <li id="proxySection"></li>
+        <li id="dgbProxySection"></li>
+        <li id="fileProxySection"></li>
         <li style="margin-top: 10px;">
           <button id="downloadPrivateKey" style="width: 100%;">Download Private Key</button>
         </li>
@@ -67,7 +68,50 @@
     </details>
   `;
 
-  const proxySection = sidebar.querySelector('#proxySection');
+  const fileProxySection = sidebar.querySelector('#fileProxySection');
+  const dgbProxySection = sidebar.querySelector('#dgbProxySection');
+
+  // Helper: Test dgbProxy server
+
+  async function testDgbApi(api) {
+    return fetch(api)
+      .then(res => true)
+      .catch(err => false);
+  }
+
+  // Render dgbProxy UI
+  function renderDgbProxyUI(currentURL = dgb.api) {
+    // http://localhost:7788
+    dgbProxySection.innerHTML = '<b>DGB Proxy:</b><br>';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentURL;
+    input.style.width = '100%';
+
+    const status = document.createElement('div');
+    status.style.marginTop = '5px';
+    status.style.fontSize = '0.9em';
+
+    const button = document.createElement('button');
+    button.textContent = 'Set/Test DGB Proxy';
+    button.style.width = '100%';
+    button.style.marginTop = '5px';
+
+    button.onclick = async () => {
+      status.textContent = 'Testing...';
+      const ok = await testDgbApi(input.value);
+      if (ok) {
+        dgb.api = input.value
+        status.textContent = '✅ Dgb Proxy is running';
+      } else {
+        status.textContent = '❌ Dgb Proxy failed. Change URL or retry.';
+      }
+    };
+    dgbProxySection.appendChild(input);
+    dgbProxySection.appendChild(button);
+    dgbProxySection.appendChild(status);
+  }
 
   // Helper: Test fileProxy server
   async function testFileProxy(url) {
@@ -86,7 +130,7 @@
 
   // Render fileProxy UI
   function renderFileProxyUI(currentURL = 'http://localhost:7799') {
-    proxySection.innerHTML = '<b>File Proxy:</b><br>';
+    fileProxySection.innerHTML = '<b>File Proxy:</b><br>';
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -98,7 +142,7 @@
     status.style.fontSize = '0.9em';
 
     const button = document.createElement('button');
-    button.textContent = 'Test Proxy';
+    button.textContent = 'Test File Proxy';
     button.style.width = '100%';
     button.style.marginTop = '5px';
 
@@ -106,15 +150,15 @@
       status.textContent = 'Testing...';
       const ok = await testFileProxy(input.value);
       if (ok) {
-        status.textContent = '✅ Proxy is running';
+        status.textContent = '✅ File Proxy is running';
       } else {
-        status.textContent = '❌ Proxy failed. Change URL or retry.';
+        status.textContent = '❌ File Proxy failed. Change URL or retry.';
       }
     };
 
-    proxySection.appendChild(input);
-    proxySection.appendChild(button);
-    proxySection.appendChild(status);
+    fileProxySection.appendChild(input);
+    fileProxySection.appendChild(button);
+    fileProxySection.appendChild(status);
   }
 
   // Render chisel_config.json UI
@@ -140,9 +184,10 @@
     };
 
     configDiv.appendChild(loadBtn);
-    proxySection.appendChild(configDiv);
+    fileProxySection.appendChild(configDiv);
   }
 
+  renderDgbProxyUI();
   renderFileProxyUI();
   renderConfigUI();
 
@@ -184,7 +229,7 @@ const saveConfigBtn = document.createElement('button');
 saveConfigBtn.textContent = 'Save Config File';
 saveConfigBtn.style.width = '100%';
 saveConfigBtn.style.marginTop = '10px';
-proxySection.appendChild(saveConfigBtn);
+fileProxySection.appendChild(saveConfigBtn);
 
 // Popup helper
 function showFileProxyTipModal(githubURL, callback) {
@@ -306,7 +351,7 @@ saveConfigBtn.onclick = async () => {
 ////////////////
 
 // Add button to sidebar
-proxySection.appendChild(saveConfigBtn);
+fileProxySection.appendChild(saveConfigBtn);
 
 
 

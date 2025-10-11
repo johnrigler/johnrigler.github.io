@@ -1,12 +1,13 @@
+<!----  begin  index.html   DO NOT REMOVE ------->
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-
+  <meta charset="utf-8">
   <title>BettingSim OOP</title>
   <style>
     body { background: #111; color: #eee; font-family: monospace; }
-    .up { color: lime; } .down { color: red; }
+    .up { color: lime; }
+    .down { color: red; }
     table { border-collapse: collapse; width: 100%; }
     td, th { border: 1px solid #444; padding: 4px; }
   </style>
@@ -16,14 +17,12 @@
   <div id="market"></div>
   <canvas id="chart" width="600" height="100"></canvas>
 
-  <script src="priceLogic.js"></script>
-  <script src="bettingSim.js"></script>
+  <script src="logic6.js"></script>     <!--- do not change name --->
+  <script src="ux1.js"></script>        <!--- do not change name --->  
   <script>
-    // initialize
     const sim = new BettingSim("market", "chart", "percentRegistry");
-    // optional: re-render manually
-    // sim.render();
   </script>
 </body>
 </html>
+<!--------- end index.html DO NOT REMOVE ---------->
 

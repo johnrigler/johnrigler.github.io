@@ -792,7 +792,7 @@ dgb.query = function(method, params = []) {
   // if called with no arguments → print usage help
   if (arguments.length === 0) {
     console.log('Usage: dgb("rpcMethod", [param1, param2, ...])');
-    fetch("http://127.0.0.1:7788").then( x => x.json() ).then ( x => console.log(x) )
+    fetch(dgb.api).then( x => x.json() ).then ( x => console.log(x) )
   
     console.log('Example: dgb("getblockhash", [21700539])');
     return Promise.resolve();      // nothing to fetch
@@ -802,7 +802,7 @@ dgb.query = function(method, params = []) {
     throw new Error('params must be an array, e.g. [21700539]');
   }
 
-  return fetch('http://127.0.0.1:7788/', {
+  return fetch(dgb.api, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({
