@@ -31,6 +31,17 @@ function makeCodeEditor(target) {
   indexBox.value = dgb.anchor
   indexBox.style.width = "80%";
 
+  // ipfs label
+  const ipfsLabel = document.createElement("label");
+  ipfsLabel.innerText = "IPFS ";
+  ipfsLabel.style.marginRight = "8px"; // space between label and input
+
+  // ipfs box
+  const ipfsInput = document.createElement("input");
+  ipfsInput.id = "ipfsInput";
+  ipfsInput.type = "text";
+  ipfsInput.placeholder = "CIDv0 only";
+  ipfsInput.style.width = "80%";
 
   // opRet label
   const oprLabel = document.createElement("label");
@@ -43,7 +54,6 @@ function makeCodeEditor(target) {
   opRetInput.type = "text";
   opRetInput.placeholder = "Text and emoticons OK here";
   opRetInput.style.width = "80%";
-
 
   // filename box
   const filenameInput = document.createElement("input");
@@ -105,6 +115,9 @@ function makeCodeEditor(target) {
   indexDiv.appendChild(indexLabel);
   indexDiv.appendChild(indexBox);
   container.appendChild(indexDiv);
+  container.appendChild(document.createElement("br"));
+  container.appendChild(ipfsLabel);
+  container.appendChild(ipfsInput);
   container.appendChild(document.createElement("br"));
   container.appendChild(oprLabel);
   container.appendChild(opRetInput);
