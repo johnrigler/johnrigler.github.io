@@ -47,7 +47,7 @@ async function loadAddressData( address, chain = "" ) {
     else
     {
     url = `https://digiexplorer.info/api/address/${address}/txs/chain/${chain}`;
-    console.log("adfsafsfd",dgb.txsCache.length)
+//    console.log("adfsafsfd",dgb.txsCache.length)
     }
 
     
@@ -244,8 +244,23 @@ function renderInfoView(tx) {
     tablet = []
    
     needCanvas = 0; 
+    var ipfs0;
+    var ipfs1;
+    var ipfs;
     tx.vout.forEach(v => {
         value = v.value / 1e8;
+
+        if(value == 0.0000546 && v.scriptpubkey_address.substr(0,3)=="DDx" )
+          {
+          ipfs0 = v.scriptpubkey_address.substr(3,23);
+          }
+        if(value == 0.0000546 && v.scriptpubkey_address.substr(0,3)=="DEx" ) 
+          {
+          ipfs1 = v.scriptpubkey_address.substr(3,23);
+          }
+
+          ipfs=ipfs0+ipfs1
+
         if(value == 0.0000546 && v.scriptpubkey_address.substr(0,2)=="SN" ) 
          {
           needCanvas = 1;
@@ -260,7 +275,12 @@ function renderInfoView(tx) {
     tabs.push(tablet);
     canvi.push(tx.txid);
     html += `<canvas type="txCanvas" id=${"canvas-" + tx.txid}></canvas><br>`;
-         }
+         } 
+if(ipfs.length == 46)
+  {
+html2 += `<button onclick="window.open('https://ipfs.io/ipfs/${ipfs}', '_blank')">IPFS</button>`;
+  }
+
     return "<pre>" + html + "</pre><hr>" + "<pre>" + html2 + "</pre>";
 }
 
