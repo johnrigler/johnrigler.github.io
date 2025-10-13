@@ -34,6 +34,15 @@ sha = buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b));
 
 chisel = []
 
+chisel.splitIpfs = async function( cid ) {
+    tablet = []
+    half = cid.length / 2
+    first = { [ await unspendable("DDx" + cid.substr(0,half))]:0.0000546 }
+    rest =  { [ await unspendable("DEx" + cid.substr(half))]:0.0000546 }
+    return [first,rest]
+    
+}
+
 chisel.pruneByIndexes = function pruneByIndexes(sourceArray, keepIndexes) {
   return sourceArray.filter((_, idx) => keepIndexes.includes(idx));
 }
