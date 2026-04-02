@@ -129,7 +129,7 @@
   }
 
   // Render fileProxy UI
-  function renderFileProxyUI(currentURL = 'http://localhost:7799') {
+  function renderFileProxyUI(currentURL = 'http://192.168.1.74:7799') {
     fileProxySection.innerHTML = '<b>File Proxy:</b><br>';
 
     const input = document.createElement('input');

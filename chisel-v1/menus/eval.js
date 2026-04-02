@@ -43,6 +43,26 @@ function makeCodeEditor(target) {
   ipfsInput.placeholder = "CIDv0 only";
   ipfsInput.style.width = "80%";
 
+// validate IPFS CIDv0
+function isValidCIDv0(cid) {
+  // CIDv0 = Qm + 44 base58 chars (total 46)
+  return /^Qm[1-9A-HJ-NP-Za-km-z]{44}$/.test(cid);
+}
+
+// function to run when valid
+function onValidCID(cid) {
+  console.log("Valid CID:", cid);
+  // your logic here
+}
+
+// event listener
+ipfsInput.addEventListener("input", (e) => {
+  const value = e.target.value.trim();
+  if (isValidCIDv0(value)) {
+    onValidCID(value);
+  }
+});
+
   // opRet label
   const oprLabel = document.createElement("label");
   oprLabel.innerText = "Memo: ";
@@ -86,8 +106,7 @@ function makeCodeEditor(target) {
   runButton.id = "runButton";
   runButton.onclick = () => {
     const code = textarea.value 
-
-    try {
+  try {
       eval(code);
     } catch (e) {
       console.error("Error in eval:", e);
@@ -109,6 +128,24 @@ function makeCodeEditor(target) {
     a.click();
   };
 
+  const fpMenuButton = document.createElement("button");
+  fpMenuButton.textContent = "FP Menu"; 
+  fpMenuButton.onclick = () => {
+   fileProxy.read("menu.js")
+      .then(x => x.text())
+      .then(x => { mainMenu.items.eval.menu = x })
+
+};
+
+
+  const fpSaveButton = document.createElement("button");
+  fpSaveButton.textContent = "FP Save";
+  fpSaveButton.onclick = () => {
+   fpSaveButton.write(filenameInput.value.trim() || "snippet.js",textarea.value);
+
+ };
+
+
   // assemble UI
   container.appendChild(textarea);
   container.appendChild(document.createElement("br"));
@@ -126,9 +163,31 @@ function makeCodeEditor(target) {
   controlBox.appendChild(filenameInput);
   controlBox.appendChild(runButton);
   controlBox.appendChild(saveButton);
+  controlBox.appendChild(fpMenuButton);
+  controlBox.appendChild(fpSaveButton);
 
   target.appendChild(container);
 
+//////////////
+
+// usage example 1: IPFS CIDv0
+createInput(sectionEval,"IPFS (CIDv0)",
+  cid => /^Qm[1-9A-HJ-NP-Za-km-z]{44}$/.test(cid),
+  cid => { 
+         cid0 = unspendable("DDx" + cid.substr(0,23))
+         cid1 = unspendable("DEx" + cid.substr(23))
+         Tablet.ipfs = [ cid0 , cid1 ] 
+         console.log("CIDv0 valid:", Tablet.ipfs)
+          }
+);
+
+// usage example 2: numeric only
+createInput(sectionEval,"number",
+  val => /^\d+$/.test(val),
+  val => console.log("Number valid:", val)
+);
+
+//////////////
 
 // #controlBox
 new AddressCombo("#indexDiv", {

@@ -1,4 +1,5 @@
 
+
 function defineConstants(constMap) {
     for (const [name, value] of constMap) {
         const desired = (typeof value === 'function') ? value() : value;
@@ -21,14 +22,18 @@ defineConstants([
     ['BASE', () => 58n ** 6n],
     ['MOD32', () => 2n ** 32n],
     ['MCD', `c123456789ABCDEFGHiJKLMNoPQRSTUVWXYZabdefghjkmnpqrstuvwxyz`],
-    ['BFF', `0123456789abcdefghijklmnopqrstuvwxyz!)(=/',;?"_}{@+|*.: -~`],
+    ['BFF', `0123456789abcdefghijklmnopqrstuvwxyz!)(=/',;?"_}{@+|*.: -~`]
+
 ]);
 
 const toBigInt = bytes => bytes.reduce((n,b)=> (n<<8n) + BigInt(b), 0n);
 
 const u32LE = n => n.toString(16).padStart(8,'0').match(/../g).reverse().join('');
 const u64LE = n => n.toString(16).padStart(16,'0').match(/../g).reverse().join('');
-sha = buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b));
+const sha = buf => crypto.subtle.digest('SHA-256', buf).then(b => new Uint8Array(b));
+
+const rBh = html => resultBox.innerHTML += html;
+
 
 
 
@@ -57,6 +62,39 @@ chisel.hexToText = function hexToText(hex) {
   const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b,16)));
   const decoder = new TextDecoder("utf-8");
   return decoder.decode(bytes);
+}
+
+chisel.bytesToBase36 = function bytesToBase36(bytes) {
+    let x = BigInt(0);
+
+    // big-endian accumulation
+    for (let b of bytes) {
+        x = (x << BigInt(8)) + BigInt(b);
+    }
+
+    // zero case
+    if (x === 0n) return "0";
+
+    // convert BigInt → base36
+    return x.toString(36);
+}
+
+chisel.base36ToBytes = function base36ToBytes(str) {
+    let x = BigInt(0);
+    for (let c of str) {
+        let v = c >= '0' && c <= '9'
+            ? BigInt(c.charCodeAt(0) - 48)
+            : BigInt(c.charCodeAt(0) - 87); // a=10
+        x = x * BigInt(36) + v;
+    }
+
+    // big-endian byte extraction
+    const out = [];
+    while (x > 0) {
+        out.push(Number(x & BigInt(0xff)));
+        x >>= BigInt(8);
+    }
+    return out.reverse();
 }
 
 chainz = []
@@ -252,9 +290,13 @@ async function findSuffixFast(stem28){
   let hashes = 0;
   const t0 = performance.now();
 
-  for (let t=0; t<=8; t++){
-    const Nhi = Phi + BigInt(t);
-    const chk = await sha(await sha(bytesOf(Nhi,21)));
+//  for (let t=1; t<=1; t++){
+    const Nhi = Phi + BigInt(1);
+    sha1 = hexToBytes(ethers.sha256(bytesOf(Nhi,21)));
+//      c("sha1",sha1.slice(1))
+    chk = hexToBytes(ethers.sha256(sha1.slice(1))).slice(1)
+
+  //  const chk = await sha(await sha(bytesOf(Nhi,21)));
     hashes += 2;
     const chkInt = toBigInt(chk.slice(0,4));
 
@@ -265,11 +307,39 @@ async function findSuffixFast(stem28){
       if ( ((Plo + s) >> 32n) !== BigInt(t) ) continue;
       results.push(intToB58(s,6));
     }
-  }
+//  }
   const dt = ((performance.now()-t0)/1000).toFixed(3);
 //  console.log(`done in ${dt}s, ${hashes} SHA‑256 calls`);
   return results;                       // array of valid 6‑char suffixes
 }
+
+function findSuffixFast2(stem28){
+  const a = b58ToInt(stem28);               // big‑int of prefix digits
+  const P  = a * BASE;
+  const Plo = P & (MOD32-1n);
+  const Phi = P >> 32n;
+        
+  const results = [];
+  let hashes = 0;
+  const t0 = performance.now();
+
+    const Nhi = Phi + BigInt(1);
+    sha1 = hexToBytes(ethers.sha256(bytesOf(Nhi,21)));
+    chk = hexToBytes(ethers.sha256(sha1.slice(1))).slice(1)
+    hashes += 2;
+    const chkInt = toBigInt(chk.slice(0,4));
+
+    let base = (chkInt - Plo) & (MOD32-1n);          // (mod 2³²)
+    for (let k=0; ; k++){
+      const s = base + BigInt(k)*MOD32;
+      if (s >= BASE) break;
+      if ( ((Plo + s) >> 32n) !== BigInt(1) ) continue;
+      results.push(intToB58(s,6));
+    }
+  const dt = ((performance.now()-t0)/1000).toFixed(3);
+  return results[0];                       // array of valid 6‑char suffixes
+}
+
 
 function base58ToDCMap(str) {
   return [...str].map(c => {
@@ -296,13 +366,23 @@ findSuffixFast(body).then( x => console.log(body + x[position]))
 }
 */
 
-function unspendable(prefix, string = "", position = 0) {
+function xxxxunspendable(prefix, string = "", position = 0) {
   const str = prefix + dcMapToBase58(string);
   const body = str.padEnd(28, "z");
 
   return findSuffixFast(body).then(suffix => {
     return body + suffix[position];
   });
+}
+
+function unspendable(prefix, string = "", position = 0) {
+  const str = prefix + dcMapToBase58(string);
+  const body = str.padEnd(28, "z");
+  const suffix = findSuffixFast2(body)
+ return body + suffix
+//  return findSuffixFast(body).then(suffix => {
+//    return body + suffix[position];
+//  });
 }
 
 

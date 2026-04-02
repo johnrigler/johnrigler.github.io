@@ -1,5 +1,4 @@
 
-
 dgb = [];
 
 dgb.debug = [];
@@ -375,10 +374,11 @@ if(local == 0)
 else
    {
        dgb.query("sendrawtransaction", [ srt ] ).then( x => {
-        if(x.error) 
+        if(x.error != null) 
           resultBox.innerText = x.error
         else
           resultBox.innerText = x.result
+     dgb.sent = x
    })
 
   }

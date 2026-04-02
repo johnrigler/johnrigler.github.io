@@ -1,0 +1,8 @@
+a.curl () 
+{ 
+    curl "https://cdnjs.cloudflare.com/ajax/libs/elliptic/$A.$B.$C/elliptic.min.js" 2> /dev/null | ipfs add --quieter | while read t; do
+        echo $A.$B.$C $t;
+    done | while read u v w x; do
+        echo $u $w;
+    done
+}

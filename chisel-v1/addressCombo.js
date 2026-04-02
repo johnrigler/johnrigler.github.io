@@ -181,3 +181,34 @@ this.input2.addEventListener("keydown", (e) => {
   global.AddressCombo = AddressCombo;
 })(window);
 
+function createInput(parent, placeholder = "Enter value", validator, onValid) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = placeholder;
+  input.style.width = "80%";
+
+  const indicator = document.createElement("span");
+  indicator.textContent = "✔";
+  indicator.style.marginLeft = "8px";
+  indicator.style.fontWeight = "bold";
+  indicator.style.color = "gray";
+  indicator.style.transition = "color 0.2s ease";
+
+  const container = document.createElement("div");
+  container.appendChild(input);
+  container.appendChild(indicator);
+  (parent || document.body).appendChild(container);
+
+  input.addEventListener("input", e => {
+    const value = e.target.value.trim();
+    const valid = validator(value);
+    indicator.style.color = valid ? "limegreen" : "gray";
+    if (valid && typeof onValid === "function") {
+      onValid(value);
+    }
+  });
+
+  return input; // optional reference
+}
+
+

@@ -1,0 +1,39 @@
+  // Helper: Test dgbProxy server
+
+  async function testDgbApi(api) {
+    return fetch(api)
+      .then(res => true)
+      .catch(err => false);
+  }
+
+  // Render dgbProxy UI
+  function renderDgbProxyUI(currentURL = 'http://localhost:7788') {
+    dgbProxySection.innerHTML = '<b>DGB Proxy:</b><br>';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentURL;
+    input.style.width = '100%';
+
+    const status = document.createElement('div');
+    status.style.marginTop = '5px';
+    status.style.fontSize = '0.9em';
+
+    const button = document.createElement('button');
+    button.textContent = 'Test DGB Proxy';
+    button.style.width = '100%';
+    button.style.marginTop = '5px';
+
+    button.onclick = async () => {
+      status.textContent = 'Testing...';
+      const ok = await testDgbApi(input.value);
+      if (ok) {
+        status.textContent = '✅ Dgb Proxy is running';
+      } else {
+        status.textContent = '❌ Dgb Proxy failed. Change URL or retry.';
+      }
+    };
+    dgbProxySection.appendChild(input);
+    dgbProxySection.appendChild(button);
+    dgbProxySection.appendChild(status);
+  }
