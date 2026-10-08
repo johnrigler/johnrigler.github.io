@@ -3,114 +3,130 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CertLedger — Verify a Document</title>
-<meta name="description" content="CertLedger links a paper document to the SHA-256 fingerprint of its canonical PDF and a public Litecoin ledger record.">
+<title>Chisel — CertLedger (public mirror)</title>
 <style>
-:root{--bg:#f4f1e9;--paper:#fffdf8;--ink:#171717;--muted:#66615a;--line:#cec7ba;--dark:#161616}
+:root{color-scheme:dark;--bg:#0b0d10;--panel:#11161c;--ink:#e6edf3;--muted:#91a4b7;--line:#293440;--accent:#8b7bff;--paper:#f4f5f6;--paperInk:#111820}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.55}
-main{max-width:900px;margin:0 auto;padding:56px 22px 90px}
-header{padding-bottom:34px;border-bottom:1px solid var(--line)}
-.eyebrow{font:600 12px/1.2 system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-h1{font-size:clamp(42px,8vw,78px);line-height:.96;letter-spacing:-.04em;margin:12px 0 18px}
-.lede{font-size:21px;max-width:760px;margin:0}
-section{padding:34px 0;border-bottom:1px solid var(--line)}
-h2{font-size:27px;margin:0 0 12px}
-h3{font-size:18px;margin:0 0 6px}
-p{margin:0 0 14px}
-code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.flow{background:var(--dark);color:#f5f2e9;padding:18px;white-space:pre-wrap;overflow:auto}
-.card{background:var(--paper);border:1px solid var(--line);padding:18px;margin:12px 0}
-.muted{color:var(--muted)}
-.button{display:inline-block;border:1px solid #222;padding:8px 12px;text-decoration:none;color:inherit;margin-right:8px}
-.record{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;border-top:1px solid var(--line);padding:12px 0}
-.record:first-child{border-top:0}
-.label{font:600 12px system-ui,sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
-@media(max-width:650px){.record{grid-template-columns:1fr;gap:2px}.lede{font-size:18px}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+main{max-width:1080px;margin:auto;padding:28px 18px 72px}
+header{padding:18px 0 28px;border-bottom:1px solid var(--line)}
+.eyebrow{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:clamp(38px,7vw,72px);line-height:.96;margin:10px 0 16px}
+.lede{max-width:800px;color:#b9c7d4;line-height:1.55;font-size:17px}
+section{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+h2{font-size:18px;margin:0 0 12px}
+h3{font-size:14px;margin:0 0 5px}
+p{line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:8px 14px;padding:9px 0;border-bottom:1px solid #212a34}
+.kv:last-child{border-bottom:0}
+.key{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.07em}
+.value{overflow-wrap:anywhere;user-select:all}
+.focus{background:var(--paper);color:var(--paperInk);border-radius:12px;padding:16px}
+.focus .key{color:#59636d}
+.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:2px 8px;font-size:11px;margin-right:6px}
+.mirror{padding:12px;border:1px solid var(--line);border-radius:10px;margin:8px 0}
+.mirror a{color:#b9adff}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.button{display:inline-block;padding:8px 11px;border:1px solid #6f61e8;border-radius:9px;color:#d9d3ff;text-decoration:none}
+.note{color:var(--muted);font-size:13px}
+code{color:#c5f467}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:1fr;gap:2px}}
 </style>
 </head>
 <body>
 <main>
 <header>
-  <div class="eyebrow">CertLedger</div>
-  <h1>This paper has a public fingerprint.</h1>
-  <p class="lede">A CertLedger label connects a physical document to the SHA-256 fingerprint of the exact PDF that was finalized before printing and to a public Litecoin ledger record containing that fingerprint.</p>
+  <div class="eyebrow">Chisel / Litecoin / CertLedger · public mirror</div>
+  <h1>CertLedger</h1>
+  <p class="lede">This is a public Chisel view of a CertLedger stream. A QR label can point here with the ledger address and a specific record. The private working repository is not required to verify the public record.</p>
 </header>
 
-<section>
-  <h2>You scanned a CertLedger label</h2>
-  <p>The QR code on the paper is meant to answer one narrow question: <strong>can this exact document be identified later?</strong></p>
-  <p>CertLedger does not decide whether the statements in a document are true. It preserves a verifiable relationship between a document, its cryptographic fingerprint, and a public record that can be examined independently.</p>
+<section class="focus">
+  <h2>Focused record</h2>
+  <div class="kv"><div class="key">Ledger address</div><div class="value" id="address">not supplied</div></div>
+  <div class="kv"><div class="key">Record</div><div class="value" id="record">not supplied</div></div>
+  <div class="kv"><div class="key">Transaction</div><div class="value" id="tx">not supplied</div></div>
+  <div class="kv"><div class="key">SHA-256</div><div class="value" id="sha256">not supplied</div></div>
 </section>
 
 <section>
-  <h2>The bridge from paper to ledger</h2>
-  <div class="flow">final browser document
-        ↓
-canonical PDF
-        ↓
-SHA-256 fingerprint
-        ↓
-Litecoin transaction / OP_RETURN
-        ↓
-CertLedger verification record
-        ↓
-one-inch QR label on paper</div>
-  <p class="muted">The label is applied after the canonical PDF is frozen and hashed. The paper label therefore points back to the digital artifact rather than becoming part of the artifact it identifies.</p>
+  <h2>What this means</h2>
+  <p>If this page was opened from a CertLedger QR label, the paper in front of you is intended to correspond to a byte-exact PDF whose SHA-256 fingerprint is recorded or referenced in a public Litecoin transaction.</p>
+  <p>The ledger entry does not prove that every statement in the document is true. It provides a durable public reference for document identity, chronology, and later integrity checking.</p>
+  <p class="note">In other words: conventional legal process says what was sent and received; CertLedger adds a public cryptographic reference to the exact digital artifact.</p>
 </section>
 
 <section>
-  <h2>Why the timestamp matters</h2>
-  <p>Once the document fingerprint is included in a public Litecoin transaction, the record becomes globally observable through independent ledger infrastructure. Anyone can later compare the PDF's SHA-256 value with the value referenced by that transaction.</p>
-  <p>The blockchain record is not a substitute for certified mail, testimony, or ordinary legal evidence. It adds a separate, public chronology and integrity check to those conventional processes.</p>
-</section>
-
-<section>
-  <h2>CertLedger feed</h2>
-  <p>This page is the public reader for the CertLedger stream. CertLedger is represented on-chain by a Chisel Thunderword and related Litecoin transactions. The working case repository itself can remain private while selected public verification records remain visible here.</p>
-
-  <div id="feed" class="card">
-    <div class="record">
-      <div class="label">Status</div>
-      <div>Feed wiring in progress.</div>
+  <h2>CertLedger stream</h2>
+  <p>This page is designed to show the complete public stream for the CertLedger Thunderword/address, with the requested record highlighted. The live Chisel feed will be connected here once the CertLedger address and record convention are fixed.</p>
+  <div class="grid">
+    <div>
+      <h3>Namespace</h3>
+      <p><span class="badge">Litecoin</span><span class="badge">Thunderword</span></p>
+      <p id="namespaceText" class="note">Supply <code>?address=...</code> in the URL.</p>
     </div>
-    <div class="record">
-      <div class="label">Thunderword</div>
-      <div class="mono" id="thunderword">CertLedger Thunderword will be configured here.</div>
-    </div>
-    <div class="record">
-      <div class="label">Reader</div>
-      <div><a href="https://github.com/johnrigler/chisel">Chisel source</a></div>
+    <div>
+      <h3>Focused record</h3>
+      <p id="focusText" class="note">Supply <code>&record=...</code> or <code>&tx=...</code> in the URL.</p>
     </div>
   </div>
-
-  <p class="muted">The next implementation step is to hard-code this page to the CertLedger Litecoin/Thunderword stream so it can render the same public records that Chisel reads, without exposing private case notes.</p>
 </section>
 
 <section>
-  <h2>Verify a PDF yourself</h2>
-  <p>If you have the electronic PDF, calculate its SHA-256 digest locally and compare it with the digest shown in its CertLedger record.</p>
-  <div class="flow">sha256sum document.pdf</div>
-  <p>Other operating systems and tools can calculate SHA-256 as well. The verification does not require trusting this website.</p>
+  <h2>Available mirrors</h2>
+  <p>CertLedger records are intended to survive any one web host. GitHub Pages, IPFS, rigler.org, Nerd Coffee, or another static host can publish the same Chisel view.</p>
+  <div id="mirrors"></div>
+  <p class="note">Future CertLedger location records can publish the latest IPFS CID and additional mirrors on-ledger. A reader arriving through an older mirror can then suggest a newer verified location without making that location the source of truth.</p>
 </section>
 
 <section>
-  <h2>Public and private layers</h2>
-  <div class="card">
-    <h3>Public</h3>
-    <p>Document fingerprints, selected canonical artifacts, Litecoin transaction references, verification instructions, and the CertLedger feed.</p>
-  </div>
-  <div class="card">
-    <h3>Private working record</h3>
-    <p>Draft correspondence, personal identifying information, legal research, case notes, scans not intended for publication, and packet-construction materials.</p>
+  <h2>Verify locally</h2>
+  <p>If you have the PDF, calculate its SHA-256 fingerprint and compare it with the record above.</p>
+  <p><code>sha256sum document.pdf</code></p>
+  <div class="actions">
+    <a class="button" href="https://github.com/johnrigler/chisel">Open Chisel source</a>
+    <a class="button" href="https://github.com/johnrigler/chisel">Chisel source</a>
   </div>
 </section>
-
-<section>
-  <h2>Related work</h2>
-  <p><a class="button" href="https://github.com/johnrigler/chisel">Chisel</a><a class="button" href="https://johnrigler.github.io/">John Rigler projects</a></p>
-</section>
-
 </main>
+<script>
+(function(){
+  const q=new URLSearchParams(location.search);
+  const get=k=>(q.get(k)||"").trim();
+  const values={
+    address:get("address"),
+    record:get("record"),
+    tx:get("tx"),
+    sha256:get("sha256"),
+    ipfs:get("ipfs")
+  };
+  for(const k of ["address","record","tx","sha256"]){
+    if(values[k]) document.getElementById(k).textContent=values[k];
+  }
+  if(values.address){
+    document.getElementById("namespaceText").textContent=values.address;
+  }
+  if(values.record || values.tx){
+    document.getElementById("focusText").textContent=values.record || values.tx;
+  }
+  const mirrors=[];
+  mirrors.push({label:"This Chisel copy",url:location.href});
+  if(values.ipfs){
+    const raw=values.ipfs.replace(/^ipfs:\/\//,"").replace(/^\/ipfs\//,"");
+    mirrors.push({label:"IPFS — ipfs.io",url:"https://ipfs.io/ipfs/"+raw});
+    mirrors.push({label:"IPFS — dweb.link",url:"https://dweb.link/ipfs/"+raw});
+  }
+  const holder=document.getElementById("mirrors");
+  mirrors.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="mirror";
+    const a=document.createElement("a");
+    a.href=m.url;a.textContent=m.label;a.rel="noopener";
+    div.appendChild(a);
+    holder.appendChild(div);
+  });
+})();
+</script>
 </body>
 </html>
