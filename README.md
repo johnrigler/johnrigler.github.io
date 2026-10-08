@@ -22,12 +22,12 @@ Blockchains, QR codes, static HTML, filesystems, IPFS, ordinary paper, shell too
 
 ## Active projects
 
-- **[Chisel](https://github.com/johnrigler/chisel)** — browser-first tools for reading, constructing, signing, and preserving small UTXO ledger artifacts.
-- **[Mogwai](https://github.com/johnrigler/mogwai)** — a user-controlled frame for resolving and navigating media, records, and identity.
-- **[Dark Star](https://github.com/johnrigler/darkStar)** — an executable printed publication that treats paper as boot media.
-- **[SB Shell](https://github.com/johnrigler/sbshell)** — a revived filesystem-as-publishing system where files remain the source of truth.
-- **[Lantern / Zarkmid](https://github.com/johnrigler/zarkmid)** — an older interactive-fiction experiment being revived around portable saves and ledger-backed persistence.
-- **CertLedger** — an active private working project exploring cryptographic document identity, QR-labeled paper records, reproducible provenance, and public-ledger references for evidence preservation.
+- **Chisel** — [open the current Pages build](https://johnrigler.github.io/chisel-v1/) or [inspect/fork the source](https://github.com/johnrigler/chisel). Browser-first tools for reading, constructing, signing, and preserving small UTXO ledger artifacts.
+- **Mogwai** — [open the Pages build](https://johnrigler.github.io/mogwai/) or [inspect/fork the source](https://github.com/johnrigler/mogwai). A user-controlled frame for resolving and navigating media, records, and identity.
+- **Dark Star** — [enter the Pages build](https://johnrigler.github.io/darkStar/) or [inspect/fork the source](https://github.com/johnrigler/darkStar). An executable printed publication that treats paper as boot media.
+- **SB Shell** — [open the Pages build](https://johnrigler.github.io/sbshell/) or [inspect/fork the source](https://github.com/johnrigler/sbshell). A revived filesystem-as-publishing system where files remain the source of truth.
+- **Lantern / Zarkmid** — [inspect/fork the repository](https://github.com/johnrigler/zarkmid). It can be run independently; `rigler.org` is one configured resource endpoint, not a required home. This is the same replaceable-service idea that appears elsewhere in Chisel.
+- **CertLedger** — an active **private** working project exploring cryptographic document identity, QR-labeled paper records, reproducible provenance, and public-ledger references for evidence preservation. Selected verification artifacts can be published separately without exposing the working case repository.
 
 ## Why these old projects are moving again
 
