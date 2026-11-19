@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+if (/^#[0-9a-f]{16}$/i.test(location.hash)) {
+  history.replaceState(null, "", location.pathname + location.search);
+}
+</script>
 <title>John Rigler — user-controlled systems, durable public artifacts</title>
 <meta name="description" content="John Rigler's projects around browser-first software, user-controlled identity, durable public records, physical/digital artifacts, and small composable tools.">
 <style>
